@@ -26,11 +26,13 @@ module cnn_accelerator #(
     wire div_start, div_done;
     wire mac_reset, mac_enable;
     wire output_valid;
+    wire reset_input_idx;
     
     wire signed [2*WIDTH-1:0] mult_product;
     wire signed [ACC_WIDTH-1:0] mac_result;
     wire signed [ACC_WIDTH-1:0] div9_result;
     wire signed [WIDTH-1:0] final_result;
+    reg signed [WIDTH-1:0] result_reg;
     
     reg [3:0] input_idx;
     wire signed [WIDTH-1:0] curr_input = input_data[input_idx];
@@ -41,7 +43,7 @@ module cnn_accelerator #(
         .mult_done(mult_done), .div9_done(div9_done), .div_done(div_done),
         .mult_start(mult_start), .div9_start(div9_start), .div_start(div_start),
         .mac_reset(mac_reset), .mac_enable(mac_enable),
-        .output_valid(output_valid), .state()
+        .output_valid(output_valid), .reset_input_idx(reset_input_idx), .state()
     );
     
     multiplier #(.WIDTH(WIDTH)) mult_inst (
@@ -68,15 +70,25 @@ module cnn_accelerator #(
         .quotient(final_result), .remainder(), .done(div_done)
     );
     
-    assign result = final_result;
+    assign result = result_reg;
     assign done = output_valid;
     
     always @(posedge clk) begin
         if (rst) begin
             input_idx <= 4'b0;
+            result_reg <= {WIDTH{1'b0}};
         end
-        else if (mult_done && input_idx < (NUM_INPUTS - 1)) begin
-            input_idx <= input_idx + 1'b1;
+        else begin
+            if (reset_input_idx) begin
+                input_idx <= 4'b0;
+            end
+            else if (mult_done && input_idx < (NUM_INPUTS - 1)) begin
+                input_idx <= input_idx + 1'b1;
+            end
+            
+            if (div_done) begin
+                result_reg <= final_result;
+            end
         end
     end
 

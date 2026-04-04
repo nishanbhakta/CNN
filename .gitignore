@@ -1,0 +1,93 @@
+# Verilog/SystemVerilog Simulation Files
+*.vcd
+*.vcd.gz
+*.vpd
+*.wlf
+*.shm
+*.fsdb
+*.log
+*.out
+*.dmp
+*.key
+
+# Compilation outputs
+*.vvp
+*.vpi
+*.o
+*.so
+*.dll
+
+# Waveform databases
+*.wdb
+work/
+transcript
+
+# Simulation directories
+simv*
+csrc/
+DVEfiles/
+ucli.key
+
+# Synthesis outputs
+*.syn
+*.syr
+*.ngc
+*.ngd
+*.pcf
+*.bit
+*.bin
+*.mcs
+*.rpt
+*.sdc
+*.xdc
+*.blif
+*.edif
+
+# Vendor-specific (Xilinx)
+*.jou
+*.log
+*.xpr
+.Xil/
+*.cache/
+*.hw/
+*.ip_user_files/
+*.runs/
+*.sim/
+
+# Vendor-specific (Intel/Altera)
+db/
+incremental_db/
+*.qpf
+*.qsf
+*.sof
+*.pof
+*.summary
+*.smsg
+*.done
+*.rpt
+
+# Vendor-specific (Cadence)
+*.history
+.nfs*
+cds.lib
+hdl.var
+
+# IDE and editor files
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.bak
+
+# Python (if using cocotb or other Python tools)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary files
+*.tmp
+*.temp
+
+# Simulation output directory
+sim_output/

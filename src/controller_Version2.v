@@ -17,6 +17,7 @@ module controller (
     output reg mac_reset,
     output reg mac_enable,
     output reg output_valid,
+    output reg reset_input_idx,
     output reg [2:0] state
 );
 
@@ -25,8 +26,9 @@ module controller (
     localparam MULTIPLY = 3'd2;
     localparam ACCUMULATE = 3'd3;
     localparam DIV9 = 3'd4;
-    localparam DIVIDE = 3'd5;
-    localparam OUTPUT = 3'd6;
+    localparam WAIT_DIV9 = 3'd5;
+    localparam DIVIDE = 3'd6;
+    localparam OUTPUT = 3'd7;
     
     reg [3:0] input_count;
     
@@ -39,9 +41,12 @@ module controller (
             mac_reset <= 1'b0;
             mac_enable <= 1'b0;
             output_valid <= 1'b0;
+            reset_input_idx <= 1'b0;
             input_count <= 4'b0;
         end
         else begin
+            reset_input_idx <= 1'b0;  // Default: don't reset
+            
             case (state)
                 IDLE: begin
                     output_valid <= 1'b0;
@@ -49,6 +54,7 @@ module controller (
                     mult_start <= 1'b0;
                     if (start) begin
                         input_count <= 4'b0;
+                        reset_input_idx <= 1'b1;
                         state <= LOAD;
                     end
                 end
@@ -82,21 +88,27 @@ module controller (
                 
                 DIV9: begin
                     div9_start <= 1'b1;
-                    state <= DIVIDE;
+                    state <= WAIT_DIV9;
                 end
                 
-                DIVIDE: begin
+                WAIT_DIV9: begin
                     div9_start <= 1'b0;
                     if (div9_done) begin
                         div_start <= 1'b1;
+                        state <= DIVIDE;
+                    end
+                end
+                
+                DIVIDE: begin
+                    div_start <= 1'b0;
+                    if (div_done) begin
+                        output_valid <= 1'b1;
                         state <= OUTPUT;
                     end
                 end
                 
                 OUTPUT: begin
-                    div_start <= 1'b0;
-                    if (div_done) begin
-                        output_valid <= 1'b1;
+                    if (output_valid) begin
                         state <= IDLE;
                     end
                 end
