@@ -69,7 +69,6 @@ foreach file $sim_files {
 
 set_property top nexys_a7_top [get_filesets sources_1]
 set_property top cnn_accelerator_tb [get_filesets sim_1]
-set_property target_constrs_file [file join $repo_root "board" "nexys_a7_top.xdc"] [current_project]
 
 update_compile_order -fileset sources_1
 update_compile_order -fileset sim_1
