@@ -177,11 +177,12 @@ Estimated implementation cost on Nexys A7:
 
 ## Accelerator-Level Notes
 
-The top-level accelerator reuses:
-- the sequential shift-add multiplier
-- the lightweight pipeline accumulator helper
+The top-level accelerator now reuses:
+- a bank of parallel sequential shift-add multipliers
+- a 3-stage reduction pipeline for the 3x3 dot product
 - the exact divide-by-9 block
 - the signed restoring divider
+- a board-level UART result streamer for Nexys A7 bring-up
 
 Implemented top-level:
 - [cnn_accelerator_Version2.v](../src/cnn_accelerator_Version2.v)
@@ -189,7 +190,8 @@ Implemented top-level:
 Expected top-level behavior:
 - One 3x3 patch processed at a time
 - Signed kernel and pixel support
-- Rough end-to-end latency around 400 cycles per patch with the current control schedule
+- Rough end-to-end latency around 140 cycles per patch with the parallel 3-stage control schedule
+- USB-UART can stream the final 32-bit result as ASCII hex for board-level debug
 - Very low DSP demand, making the design easy to fit on either Nexys A7 variant
 
 ## Verification Status

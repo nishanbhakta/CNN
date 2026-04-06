@@ -16,7 +16,9 @@ SRCS = $(SRC_DIR)/multiplier.v \
        $(SRC_DIR)/divider_Version2.v \
        $(SRC_DIR)/divide_by_9_Version2.v \
        $(SRC_DIR)/controller_Version2.v \
-       $(SRC_DIR)/cnn_accelerator_Version2.v
+       $(SRC_DIR)/cnn_accelerator_Version2.v \
+       $(SRC_DIR)/uart_tx.v \
+       $(SRC_DIR)/uart_result_streamer.v
 
 # Testbench files
 TB_MULTIPLIER = $(TB_DIR)/multiplier_tb_Version2.v
@@ -24,6 +26,7 @@ TB_MAC = $(TB_DIR)/mac_tb_Version2.v
 TB_DIVIDER = $(TB_DIR)/divider_tb_Version2.v
 TB_DIV9 = $(TB_DIR)/divide_by_9_Version2.v
 TB_CNN = $(TB_DIR)/cnn_accelerator_tb_Version2.v
+TB_UART = $(TB_DIR)/uart_result_streamer_tb.v
 
 # Output files
 OUT_DIR = sim_output
@@ -48,6 +51,15 @@ cnn_accelerator: $(OUT_DIR)
 	@if [ -f cnn_accelerator_tb.vcd ]; then mv cnn_accelerator_tb.vcd $(VCD_DIR)/; fi
 	@echo "=== Simulation Complete ==="
 	@echo "Waveform saved to $(VCD_DIR)/cnn_accelerator_tb.vcd"
+
+# UART result streamer simulation
+.PHONY: uart
+uart: $(OUT_DIR)
+	@echo "=== Compiling UART Result Streamer ==="
+	$(IVERILOG) -g2012 -o $(OUT_DIR)/uart_result_streamer.vvp $(SRC_DIR)/uart_tx.v $(SRC_DIR)/uart_result_streamer.v $(TB_UART)
+	@echo "=== Running UART Result Streamer Simulation ==="
+	cd $(OUT_DIR) && $(VVP) uart_result_streamer.vvp
+	@if [ -f uart_result_streamer_tb.vcd ]; then mv uart_result_streamer_tb.vcd $(VCD_DIR)/; fi
 
 # Multiplier simulation
 .PHONY: multiplier
@@ -87,7 +99,7 @@ div9: $(OUT_DIR)
 
 # Run all component tests
 .PHONY: test_all
-test_all: multiplier mac divider div9 cnn_accelerator
+test_all: multiplier mac divider div9 uart cnn_accelerator
 	@echo "=== All Tests Complete ==="
 
 # View waveform
@@ -107,6 +119,10 @@ wave_mac:
 wave_div:
 	$(GTKWAVE) $(VCD_DIR)/divider_tb.vcd &
 
+.PHONY: wave_uart
+wave_uart:
+	$(GTKWAVE) $(VCD_DIR)/uart_result_streamer_tb.vcd &
+
 # Clean
 .PHONY: clean
 clean:
@@ -122,6 +138,7 @@ help:
 	@echo "Targets:"
 	@echo "  all (default)    - Run CNN accelerator simulation"
 	@echo "  cnn_accelerator  - Run top-level CNN simulation"
+	@echo "  uart             - Run UART result streamer testbench"
 	@echo "  multiplier       - Run multiplier testbench"
 	@echo "  mac              - Run MAC testbench"
 	@echo "  divider          - Run divider testbench"
@@ -131,5 +148,6 @@ help:
 	@echo "  wave_mult        - View multiplier waveform"
 	@echo "  wave_mac         - View MAC waveform"
 	@echo "  wave_div         - View divider waveform"
+	@echo "  wave_uart        - View UART waveform"
 	@echo "  clean            - Remove all simulation outputs"
 	@echo "  help             - Show this help message"

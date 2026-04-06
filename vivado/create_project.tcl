@@ -40,6 +40,8 @@ set source_files [list \
     [file join $repo_root "src" "divider_Version2.v"] \
     [file join $repo_root "src" "controller_Version2.v"] \
     [file join $repo_root "src" "cnn_accelerator_Version2.v"] \
+    [file join $repo_root "src" "uart_tx.v"] \
+    [file join $repo_root "src" "uart_result_streamer.v"] \
     [file join $repo_root "board" "nexys_a7_top.v"] \
 ]
 

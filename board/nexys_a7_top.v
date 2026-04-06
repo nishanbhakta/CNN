@@ -1,10 +1,13 @@
 /*
-  Starter Nexys A7 board wrapper for the CNN accelerator.
+  Nexys A7 board wrapper for the pipelined CNN accelerator.
   - BTN U starts one inference on a built-in 3x3 patch/kernel
   - BTN C resets the design
   - SW[15:0] set the positive scale factor, with 0 treated as 1
-  - LED[15] shows done, LED[14] shows sign, LED[13:0] show result bits
+  - LED[15] pulses when the accelerator completes
+  - LED[14] indicates UART transmission is active
+  - LED[13] shows the result sign, LED[12:0] show result bits
   - The 8-digit seven-segment display shows the 32-bit result in hex
+  - The result is also streamed over USB-UART as ASCII hex + CR/LF
  */
 
 module nexys_a7_top (
@@ -12,6 +15,8 @@ module nexys_a7_top (
     input BTNC,
     input BTNU,
     input [15:0] SW,
+    input UART_TXD_IN,
+    output UART_RXD_OUT,
     output [15:0] LED,
     output CA,
     output CB,
@@ -40,10 +45,11 @@ module nexys_a7_top (
     wire signed [WIDTH-1:0] scale_factor;
     wire signed [WIDTH-1:0] result;
     wire done;
+    wire uart_busy;
+    wire uart_done;
 
     reg [7:0] an_reg;
     reg [6:0] seg_reg;
-    reg dp_reg;
     reg [3:0] hex_nibble;
 
     wire [2:0] active_digit = refresh_counter[15:13];
@@ -84,6 +90,19 @@ module nexys_a7_top (
         .scale_factor(scale_factor),
         .result(result),
         .done(done)
+    );
+
+    uart_result_streamer #(
+        .CLK_FREQ_HZ(100_000_000),
+        .BAUD_RATE(115_200)
+    ) uart_streamer_inst (
+        .clk(CLK100MHZ),
+        .rst(rst),
+        .start(done),
+        .result(result),
+        .tx(UART_RXD_OUT),
+        .busy(uart_busy),
+        .done(uart_done)
     );
 
     always @(posedge CLK100MHZ) begin
@@ -128,8 +147,9 @@ module nexys_a7_top (
     end
 
     assign LED[15] = done;
-    assign LED[14] = result[31];
-    assign LED[13:0] = result[13:0];
+    assign LED[14] = uart_busy;
+    assign LED[13] = result[31];
+    assign LED[12:0] = result[12:0];
 
     assign AN = an_reg;
     assign {CA, CB, CC, CD, CE, CF, CG} = seg_reg;

@@ -1,7 +1,7 @@
 @echo off
 REM CNN Accelerator Simulation Script for Windows
 REM Usage: sim.bat [test_name]
-REM Available tests: cnn, multiplier, mac, divider, div9, all
+REM Available tests: cnn, uart, multiplier, mac, divider, div9, all
 
 set SRC_DIR=src
 set TB_DIR=tb
@@ -21,6 +21,7 @@ echo CNN Accelerator Simulation
 echo ========================================
 
 if /I "%TEST%"=="cnn" goto run_cnn
+if /I "%TEST%"=="uart" goto run_uart
 if /I "%TEST%"=="multiplier" goto run_multiplier
 if /I "%TEST%"=="mac" goto run_mac
 if /I "%TEST%"=="divider" goto run_divider
@@ -59,6 +60,30 @@ if exist "%OUT_DIR%\cnn_accelerator_tb.vcd" move /Y "%OUT_DIR%\cnn_accelerator_t
 
 echo === Simulation Complete ===
 echo Waveform saved to %VCD_DIR%\cnn_accelerator_tb.vcd
+goto end
+
+:run_uart
+echo.
+echo === Compiling UART Result Streamer ===
+iverilog -g2012 -o %OUT_DIR%\uart_result_streamer.vvp ^
+    %SRC_DIR%\uart_tx.v ^
+    %SRC_DIR%\uart_result_streamer.v ^
+    %TB_DIR%\uart_result_streamer_tb.v
+
+if %ERRORLEVEL% NEQ 0 (
+    echo Compilation failed!
+    exit /b 1
+)
+
+echo === Running UART Result Streamer Simulation ===
+cd %OUT_DIR%
+vvp uart_result_streamer.vvp
+cd ..
+
+if exist "uart_result_streamer_tb.vcd" move /Y "uart_result_streamer_tb.vcd" "%VCD_DIR%\"
+if exist "%OUT_DIR%\uart_result_streamer_tb.vcd" move /Y "%OUT_DIR%\uart_result_streamer_tb.vcd" "%VCD_DIR%\"
+
+echo === Simulation Complete ===
 goto end
 
 :run_multiplier
@@ -159,6 +184,7 @@ call :run_multiplier
 call :run_mac
 call :run_divider
 call :run_div9
+call :run_uart
 call :run_cnn
 echo.
 echo === All Tests Complete ===
@@ -180,6 +206,7 @@ echo Usage: sim.bat [test_name]
 echo.
 echo Available tests:
 echo   cnn         - Run CNN accelerator simulation (default)
+echo   uart        - Run UART result streamer testbench
 echo   multiplier  - Run multiplier testbench
 echo   mac         - Run MAC testbench
 echo   divider     - Run divider testbench
