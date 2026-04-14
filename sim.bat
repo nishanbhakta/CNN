@@ -1,7 +1,7 @@
 @echo off
 REM CNN Accelerator Simulation Script for Windows
 REM Usage: sim.bat [test_name]
-REM Available tests: cnn, uart, multiplier, mac, divider, div9, all
+REM Available tests: cnn, cnn_csv, uart, multiplier, mac, divider, div9, all
 
 set SRC_DIR=src
 set TB_DIR=tb
@@ -21,6 +21,7 @@ echo CNN Accelerator Simulation
 echo ========================================
 
 if /I "%TEST%"=="cnn" goto run_cnn
+if /I "%TEST%"=="cnn_csv" goto run_cnn_csv
 if /I "%TEST%"=="uart" goto run_uart
 if /I "%TEST%"=="multiplier" goto run_multiplier
 if /I "%TEST%"=="mac" goto run_mac
@@ -60,6 +61,33 @@ if exist "%OUT_DIR%\cnn_accelerator_tb.vcd" move /Y "%OUT_DIR%\cnn_accelerator_t
 
 echo === Simulation Complete ===
 echo Waveform saved to %VCD_DIR%\cnn_accelerator_tb.vcd
+goto end
+
+:run_cnn_csv
+echo.
+echo === Compiling CNN Accelerator CSV Testbench ===
+iverilog -g2012 -DUSE_CSV_TEST_DATA -o %OUT_DIR%\cnn_csv.vvp ^
+    %SRC_DIR%\multiplier.v ^
+    %SRC_DIR%\MAC.v ^
+    %SRC_DIR%\divider_Version2.v ^
+    %SRC_DIR%\divide_by_9_Version2.v ^
+    %SRC_DIR%\controller_Version2.v ^
+    %SRC_DIR%\cnn_accelerator_Version2.v ^
+    %TB_DIR%\cnn_accelerator_tb_Version2.v
+
+if %ERRORLEVEL% NEQ 0 (
+    echo Compilation failed!
+    exit /b 1
+)
+
+echo === Running CNN Accelerator CSV Simulation ===
+vvp %OUT_DIR%\cnn_csv.vvp
+
+if exist "cnn_accelerator_tb.vcd" move /Y "cnn_accelerator_tb.vcd" "%VCD_DIR%\cnn_accelerator_csv_tb.vcd"
+if exist "%OUT_DIR%\cnn_accelerator_tb.vcd" move /Y "%OUT_DIR%\cnn_accelerator_tb.vcd" "%VCD_DIR%\cnn_accelerator_csv_tb.vcd"
+
+echo === Simulation Complete ===
+echo Waveform saved to %VCD_DIR%\cnn_accelerator_csv_tb.vcd
 goto end
 
 :run_uart
@@ -186,6 +214,7 @@ call :run_divider
 call :run_div9
 call :run_uart
 call :run_cnn
+call :run_cnn_csv
 echo.
 echo === All Tests Complete ===
 goto end
@@ -206,6 +235,7 @@ echo Usage: sim.bat [test_name]
 echo.
 echo Available tests:
 echo   cnn         - Run CNN accelerator simulation (default)
+echo   cnn_csv     - Run CSV-driven CNN accelerator simulation with accuracy summary
 echo   uart        - Run UART result streamer testbench
 echo   multiplier  - Run multiplier testbench
 echo   mac         - Run MAC testbench
@@ -217,6 +247,7 @@ echo   help        - Show this help message
 echo.
 echo Examples:
 echo   sim.bat              (runs CNN accelerator)
+echo   sim.bat cnn_csv      (runs the CSV-driven CNN testbench)
 echo   sim.bat multiplier   (runs multiplier test)
 echo   sim.bat all          (runs all tests)
 goto end

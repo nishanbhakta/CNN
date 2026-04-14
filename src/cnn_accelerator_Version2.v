@@ -49,7 +49,8 @@ module cnn_accelerator #(
 
     wire signed [ACC_WIDTH-1:0] div9_result;
     wire div9_done;
-    wire signed [WIDTH-1:0] final_result;
+    wire signed [ACC_WIDTH-1:0] scale_factor_ext;
+    wire signed [ACC_WIDTH-1:0] final_result;
     wire div_done;
 
     integer group_idx;
@@ -100,12 +101,16 @@ module cnn_accelerator #(
         .done(div9_done)
     );
 
-    divider #(.WIDTH(WIDTH)) div_inst (
+    assign scale_factor_ext = {{
+        (ACC_WIDTH - WIDTH){scale_factor[WIDTH-1]}
+    }, scale_factor};
+
+    divider #(.WIDTH(ACC_WIDTH)) div_inst (
         .clk(clk),
         .rst(rst),
         .start(div_start),
-        .dividend(div9_result[WIDTH-1:0]),
-        .divisor(scale_factor),
+        .dividend(div9_result),
+        .divisor(scale_factor_ext),
         .quotient(final_result),
         .remainder(),
         .done(div_done)
@@ -159,7 +164,7 @@ module cnn_accelerator #(
             end
 
             if (div_done) begin
-                result_reg <= final_result;
+                result_reg <= final_result[WIDTH-1:0];
             end
         end
     end

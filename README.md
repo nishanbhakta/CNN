@@ -11,6 +11,10 @@ Where:
 - `hi` = a 3x3 kernel flattened into 9 signed values
 - `K` = scale factor
 
+The hardware uses truncation toward zero for both division stages. The 3x3 sum and the
+post-`/9` value stay at the full 72-bit accumulator width until the final result is
+reduced back to the 32-bit output.
+
 ## Architecture
 
 ### Core modules
@@ -57,11 +61,24 @@ Run the top-level testbench:
 .\sim.bat cnn
 ```
 
+Run the CSV-driven top-level testbench with a richer dataset and visible accuracy summary:
+
+```powershell
+.\sim.bat cnn_csv
+```
+
 Run all component benches:
 
 ```powershell
 .\sim.bat all
 ```
+
+Available `sim.bat` targets:
+
+- `cnn` - directed top-level regression
+- `cnn_csv` - CSV-driven top-level regression using `tb/data/cnn_complex_vectors.csv`
+- `multiplier`, `mac`, `divider`, `div9`, `uart` - individual module benches
+- `all` - runs every test target above
 
 ### Linux / macOS
 
@@ -75,14 +92,21 @@ make test_all
 You can preprocess a real image into 3x3 windows and run the generated-data simulation in one command:
 
 ```powershell
-python scripts\run_image_sim.py path\to\image.png --resize 28x28 --kernel "1,0,-1,1,0,-1,1,0,-1" --scale-factor 1
+py -3 scripts\run_image_sim.py path\to\image.png --resize 28x28 --kernel "1,0,-1,1,0,-1,1,0,-1" --scale-factor 1
 ```
 
 This generates:
 - grayscale pixel CSV
-- patch CSV with expected outputs
+- patch CSV with pixels, kernel, intermediate math, and expected outputs
+- metadata JSON describing the image size, kernel, and window counts
 - Verilog include file for the generated windows
 - compiled simulation output in `sim_output/`
+
+Useful options for the image flow:
+
+- `--limit-windows N` limits how many windows are written to the CSV outputs
+- `--verilog-window-limit N` limits how many windows are compiled into the generated Verilog include
+- `--output-dir path\to\dir` changes the generated-data directory
 
 ## Parameters
 

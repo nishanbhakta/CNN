@@ -30,8 +30,19 @@ switch -- $board_variant {
 set script_dir [file normalize [file dirname [info script]]]
 set repo_root [file normalize [file join $script_dir ".."]]
 set project_dir [file normalize [file join $repo_root "vivado_build" $project_name]]
+set project_file [file join $project_dir "${project_name}.xpr"]
 
-create_project $project_name $project_dir -part $fpga_part -force
+if {[file exists $project_file]} {
+    open_project $project_file
+} else {
+    if {[file exists $project_dir] && [llength [glob -nocomplain -directory $project_dir *]] > 0} {
+        puts "Project directory exists without .xpr, recreating with -force:"
+        puts "  $project_dir"
+        create_project $project_name $project_dir -part $fpga_part -force
+    } else {
+        create_project $project_name $project_dir -part $fpga_part
+    }
+}
 
 set source_files [list \
     [file join $repo_root "src" "multiplier.v"] \
@@ -51,15 +62,25 @@ set sim_files [list \
     [file join $repo_root "tb" "divide_by_9_Version2.v"] \
     [file join $repo_root "tb" "divider_tb_Version2.v"] \
     [file join $repo_root "tb" "cnn_accelerator_tb_Version2.v"] \
+    [file join $repo_root "tb" "uart_result_streamer_tb.v"] \
 ]
 
 set constraint_files [list \
     [file join $repo_root "board" "nexys_a7_top.xdc"] \
 ]
 
-add_files -norecurse -fileset sources_1 $source_files
-add_files -norecurse -fileset sim_1 $sim_files
-add_files -norecurse -fileset constrs_1 $constraint_files
+proc ensure_files_in_set {fileset_name files} {
+    foreach file $files {
+        set existing_file [get_files -quiet -of_objects [get_filesets $fileset_name] $file]
+        if {$existing_file eq ""} {
+            add_files -norecurse -fileset $fileset_name $file
+        }
+    }
+}
+
+ensure_files_in_set sources_1 $source_files
+ensure_files_in_set sim_1 $sim_files
+ensure_files_in_set constrs_1 $constraint_files
 
 foreach file $source_files {
     set_property file_type SystemVerilog [get_files $file]

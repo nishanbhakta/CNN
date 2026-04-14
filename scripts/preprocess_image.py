@@ -140,10 +140,14 @@ def load_grayscale_pixels(image_path: Path, resize: tuple[int, int] | None) -> l
     return [pixels[row * width : (row + 1) * width] for row in range(height)]
 
 
-def compute_patch_result(patch: list[int], kernel: list[int], scale_factor: int) -> int:
+def compute_patch_reference(patch: list[int], kernel: list[int], scale_factor: int) -> dict[str, int]:
     accumulator = sum(pixel * weight for pixel, weight in zip(patch, kernel, strict=True))
     after_div9 = trunc_div(accumulator, 9)
-    return trunc_div(after_div9, scale_factor)
+    return {
+        "accumulator": accumulator,
+        "after_div9": after_div9,
+        "expected_result": trunc_div(after_div9, scale_factor),
+    }
 
 
 def iter_patches(
@@ -161,11 +165,12 @@ def iter_patches(
                 for dr in range(3)
                 for dc in range(3)
             ]
+            reference = compute_patch_reference(patch, kernel, scale_factor)
             yield {
                 "row": row,
                 "col": col,
                 "patch": patch,
-                "expected_result": compute_patch_result(patch, kernel, scale_factor),
+                **reference,
             }
 
 
@@ -176,17 +181,32 @@ def write_pixels_csv(path: Path, pixels: list[list[int]]) -> None:
             writer.writerow(row)
 
 
-def write_patches_csv(path: Path, patches: list[dict[str, int | list[int]]]) -> None:
-    header = ["row", "col"] + [f"p{i}" for i in range(9)] + ["expected_result"]
+def write_patches_csv(
+    path: Path,
+    patches: list[dict[str, int | list[int]]],
+    kernel: list[int],
+    scale_factor: int,
+) -> None:
+    header = (
+        ["test_id", "row", "col"]
+        + [f"p{i}" for i in range(9)]
+        + [f"k{i}" for i in range(9)]
+        + ["accumulator", "after_div9", "scale_factor", "expected_result"]
+    )
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
         writer.writerow(header)
-        for patch_info in patches:
+        for test_id, patch_info in enumerate(patches, start=1):
             writer.writerow(
                 [
+                    test_id,
                     patch_info["row"],
                     patch_info["col"],
                     *patch_info["patch"],
+                    *kernel,
+                    patch_info["accumulator"],
+                    patch_info["after_div9"],
+                    scale_factor,
                     patch_info["expected_result"],
                 ]
             )
@@ -306,7 +326,12 @@ def process_image(
     verilog_include = output_dir / "generated_windows.vh"
 
     write_pixels_csv(pixels_csv, pixels)
-    write_patches_csv(patches_csv, emitted_patches)
+    write_patches_csv(
+        patches_csv,
+        emitted_patches,
+        kernel=kernel,
+        scale_factor=scale_factor,
+    )
     write_metadata_json(
         metadata_json,
         image_path,
