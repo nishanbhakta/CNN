@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="cnn_accelerator_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="cnn_accelerator_tb" />
+            <top_module name="glbl" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="36,773.898 ns"></ZoomStartTime>
+      <ZoomEndTime time="36,842.299 ns"></ZoomEndTime>
+      <Cursor1Time time="30,000.000 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="96"></NameColumnWidth>
+      <ValueColumnWidth column_width="72"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="118" />
+   <wvobject fp_name="/cnn_accelerator_tb/generated_kernel" type="array">
+      <obj_property name="ElementShortName">generated_kernel[0:8][31:0]</obj_property>
+      <obj_property name="ObjectShortName">generated_kernel[0:8][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_expected_results" type="array">
+      <obj_property name="ElementShortName">generated_expected_results[0:675][31:0]</obj_property>
+      <obj_property name="ObjectShortName">generated_expected_results[0:675][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_window_rows" type="array">
+      <obj_property name="ElementShortName">generated_window_rows[0:675][31:0]</obj_property>
+      <obj_property name="ObjectShortName">generated_window_rows[0:675][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_window_cols" type="array">
+      <obj_property name="ElementShortName">generated_window_cols[0:675][31:0]</obj_property>
+      <obj_property name="ObjectShortName">generated_window_cols[0:675][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/rst" type="logic">
+      <obj_property name="ElementShortName">rst</obj_property>
+      <obj_property name="ObjectShortName">rst</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/start" type="logic">
+      <obj_property name="ElementShortName">start</obj_property>
+      <obj_property name="ObjectShortName">start</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/input_data" type="array">
+      <obj_property name="ElementShortName">input_data[0:8][31:0]</obj_property>
+      <obj_property name="ObjectShortName">input_data[0:8][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/kernel" type="array">
+      <obj_property name="ElementShortName">kernel[0:8][31:0]</obj_property>
+      <obj_property name="ObjectShortName">kernel[0:8][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/scale_factor" type="array">
+      <obj_property name="ElementShortName">scale_factor[31:0]</obj_property>
+      <obj_property name="ObjectShortName">scale_factor[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/result" type="array">
+      <obj_property name="ElementShortName">result[31:0]</obj_property>
+      <obj_property name="ObjectShortName">result[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/done" type="logic">
+      <obj_property name="ElementShortName">done</obj_property>
+      <obj_property name="ObjectShortName">done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/test_num" type="array">
+      <obj_property name="ElementShortName">test_num[31:0]</obj_property>
+      <obj_property name="ObjectShortName">test_num[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/expected_result" type="array">
+      <obj_property name="ElementShortName">expected_result[31:0]</obj_property>
+      <obj_property name="ObjectShortName">expected_result[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/total_tests" type="array">
+      <obj_property name="ElementShortName">total_tests[31:0]</obj_property>
+      <obj_property name="ObjectShortName">total_tests[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/pass_count" type="array">
+      <obj_property name="ElementShortName">pass_count[31:0]</obj_property>
+      <obj_property name="ObjectShortName">pass_count[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/fail_count" type="array">
+      <obj_property name="ElementShortName">fail_count[31:0]</obj_property>
+      <obj_property name="ObjectShortName">fail_count[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/accuracy_hundredths" type="array">
+      <obj_property name="ElementShortName">accuracy_hundredths[31:0]</obj_property>
+      <obj_property name="ObjectShortName">accuracy_hundredths[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/i" type="array">
+      <obj_property name="ElementShortName">i[31:0]</obj_property>
+      <obj_property name="ObjectShortName">i[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/current_output_row" type="array">
+      <obj_property name="ElementShortName">current_output_row[31:0]</obj_property>
+      <obj_property name="ObjectShortName">current_output_row[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/current_output_col" type="array">
+      <obj_property name="ElementShortName">current_output_col[31:0]</obj_property>
+      <obj_property name="ObjectShortName">current_output_col[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/simulation_timeout_cycles" type="array">
+      <obj_property name="ElementShortName">simulation_timeout_cycles[31:0]</obj_property>
+      <obj_property name="ObjectShortName">simulation_timeout_cycles[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/capture_generated_output" type="logic">
+      <obj_property name="ElementShortName">capture_generated_output</obj_property>
+      <obj_property name="ObjectShortName">capture_generated_output</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_output_vram" type="array">
+      <obj_property name="ElementShortName">generated_output_vram[0:25][0:25][31:0]</obj_property>
+      <obj_property name="ObjectShortName">generated_output_vram[0:25][0:25][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_output_valid" type="array">
+      <obj_property name="ElementShortName">generated_output_valid[0:25][0:25]</obj_property>
+      <obj_property name="ObjectShortName">generated_output_valid[0:25][0:25]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_output_fd" type="array">
+      <obj_property name="ElementShortName">generated_output_fd[31:0]</obj_property>
+      <obj_property name="ObjectShortName">generated_output_fd[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_trace_fd" type="array">
+      <obj_property name="ElementShortName">generated_trace_fd[31:0]</obj_property>
+      <obj_property name="ObjectShortName">generated_trace_fd[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_row_index" type="array">
+      <obj_property name="ElementShortName">generated_row_index[31:0]</obj_property>
+      <obj_property name="ObjectShortName">generated_row_index[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_col_index" type="array">
+      <obj_property name="ElementShortName">generated_col_index[31:0]</obj_property>
+      <obj_property name="ObjectShortName">generated_col_index[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/WIDTH" type="array">
+      <obj_property name="ElementShortName">WIDTH[31:0]</obj_property>
+      <obj_property name="ObjectShortName">WIDTH[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/ACC_WIDTH" type="array">
+      <obj_property name="ElementShortName">ACC_WIDTH[31:0]</obj_property>
+      <obj_property name="ObjectShortName">ACC_WIDTH[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/NUM_INPUTS" type="array">
+      <obj_property name="ElementShortName">NUM_INPUTS[31:0]</obj_property>
+      <obj_property name="ObjectShortName">NUM_INPUTS[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/CLK_PERIOD" type="array">
+      <obj_property name="ElementShortName">CLK_PERIOD[31:0]</obj_property>
+      <obj_property name="ObjectShortName">CLK_PERIOD[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/GENERATED_NUM_WINDOWS" type="array">
+      <obj_property name="ElementShortName">GENERATED_NUM_WINDOWS[31:0]</obj_property>
+      <obj_property name="ObjectShortName">GENERATED_NUM_WINDOWS[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/GENERATED_IMAGE_WIDTH" type="array">
+      <obj_property name="ElementShortName">GENERATED_IMAGE_WIDTH[31:0]</obj_property>
+      <obj_property name="ObjectShortName">GENERATED_IMAGE_WIDTH[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/GENERATED_IMAGE_HEIGHT" type="array">
+      <obj_property name="ElementShortName">GENERATED_IMAGE_HEIGHT[31:0]</obj_property>
+      <obj_property name="ObjectShortName">GENERATED_IMAGE_HEIGHT[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/GENERATED_OUTPUT_WIDTH" type="array">
+      <obj_property name="ElementShortName">GENERATED_OUTPUT_WIDTH[31:0]</obj_property>
+      <obj_property name="ObjectShortName">GENERATED_OUTPUT_WIDTH[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/GENERATED_OUTPUT_HEIGHT" type="array">
+      <obj_property name="ElementShortName">GENERATED_OUTPUT_HEIGHT[31:0]</obj_property>
+      <obj_property name="ObjectShortName">GENERATED_OUTPUT_HEIGHT[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/GENERATED_SCALE_FACTOR" type="array">
+      <obj_property name="ElementShortName">GENERATED_SCALE_FACTOR[31:0]</obj_property>
+      <obj_property name="ObjectShortName">GENERATED_SCALE_FACTOR[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_kernel" type="array">
+      <obj_property name="ElementShortName">generated_kernel[0:8][31:0]</obj_property>
+      <obj_property name="ObjectShortName">generated_kernel[0:8][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_expected_results" type="array">
+      <obj_property name="ElementShortName">generated_expected_results[0:675][31:0]</obj_property>
+      <obj_property name="ObjectShortName">generated_expected_results[0:675][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_window_rows" type="array">
+      <obj_property name="ElementShortName">generated_window_rows[0:675][31:0]</obj_property>
+      <obj_property name="ObjectShortName">generated_window_rows[0:675][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_window_cols" type="array">
+      <obj_property name="ElementShortName">generated_window_cols[0:675][31:0]</obj_property>
+      <obj_property name="ObjectShortName">generated_window_cols[0:675][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/rst" type="logic">
+      <obj_property name="ElementShortName">rst</obj_property>
+      <obj_property name="ObjectShortName">rst</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/start" type="logic">
+      <obj_property name="ElementShortName">start</obj_property>
+      <obj_property name="ObjectShortName">start</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/input_data" type="array">
+      <obj_property name="ElementShortName">input_data[0:8][31:0]</obj_property>
+      <obj_property name="ObjectShortName">input_data[0:8][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/kernel" type="array">
+      <obj_property name="ElementShortName">kernel[0:8][31:0]</obj_property>
+      <obj_property name="ObjectShortName">kernel[0:8][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/scale_factor" type="array">
+      <obj_property name="ElementShortName">scale_factor[31:0]</obj_property>
+      <obj_property name="ObjectShortName">scale_factor[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/result" type="array">
+      <obj_property name="ElementShortName">result[31:0]</obj_property>
+      <obj_property name="ObjectShortName">result[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/done" type="logic">
+      <obj_property name="ElementShortName">done</obj_property>
+      <obj_property name="ObjectShortName">done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/test_num" type="array">
+      <obj_property name="ElementShortName">test_num[31:0]</obj_property>
+      <obj_property name="ObjectShortName">test_num[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/expected_result" type="array">
+      <obj_property name="ElementShortName">expected_result[31:0]</obj_property>
+      <obj_property name="ObjectShortName">expected_result[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/total_tests" type="array">
+      <obj_property name="ElementShortName">total_tests[31:0]</obj_property>
+      <obj_property name="ObjectShortName">total_tests[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/pass_count" type="array">
+      <obj_property name="ElementShortName">pass_count[31:0]</obj_property>
+      <obj_property name="ObjectShortName">pass_count[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/fail_count" type="array">
+      <obj_property name="ElementShortName">fail_count[31:0]</obj_property>
+      <obj_property name="ObjectShortName">fail_count[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/accuracy_hundredths" type="array">
+      <obj_property name="ElementShortName">accuracy_hundredths[31:0]</obj_property>
+      <obj_property name="ObjectShortName">accuracy_hundredths[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/i" type="array">
+      <obj_property name="ElementShortName">i[31:0]</obj_property>
+      <obj_property name="ObjectShortName">i[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/current_output_row" type="array">
+      <obj_property name="ElementShortName">current_output_row[31:0]</obj_property>
+      <obj_property name="ObjectShortName">current_output_row[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/current_output_col" type="array">
+      <obj_property name="ElementShortName">current_output_col[31:0]</obj_property>
+      <obj_property name="ObjectShortName">current_output_col[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/simulation_timeout_cycles" type="array">
+      <obj_property name="ElementShortName">simulation_timeout_cycles[31:0]</obj_property>
+      <obj_property name="ObjectShortName">simulation_timeout_cycles[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/capture_generated_output" type="logic">
+      <obj_property name="ElementShortName">capture_generated_output</obj_property>
+      <obj_property name="ObjectShortName">capture_generated_output</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_output_vram" type="array">
+      <obj_property name="ElementShortName">generated_output_vram[0:25][0:25][31:0]</obj_property>
+      <obj_property name="ObjectShortName">generated_output_vram[0:25][0:25][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_output_valid" type="array">
+      <obj_property name="ElementShortName">generated_output_valid[0:25][0:25]</obj_property>
+      <obj_property name="ObjectShortName">generated_output_valid[0:25][0:25]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_output_fd" type="array">
+      <obj_property name="ElementShortName">generated_output_fd[31:0]</obj_property>
+      <obj_property name="ObjectShortName">generated_output_fd[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_trace_fd" type="array">
+      <obj_property name="ElementShortName">generated_trace_fd[31:0]</obj_property>
+      <obj_property name="ObjectShortName">generated_trace_fd[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_row_index" type="array">
+      <obj_property name="ElementShortName">generated_row_index[31:0]</obj_property>
+      <obj_property name="ObjectShortName">generated_row_index[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_col_index" type="array">
+      <obj_property name="ElementShortName">generated_col_index[31:0]</obj_property>
+      <obj_property name="ObjectShortName">generated_col_index[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/WIDTH" type="array">
+      <obj_property name="ElementShortName">WIDTH[31:0]</obj_property>
+      <obj_property name="ObjectShortName">WIDTH[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/ACC_WIDTH" type="array">
+      <obj_property name="ElementShortName">ACC_WIDTH[31:0]</obj_property>
+      <obj_property name="ObjectShortName">ACC_WIDTH[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/NUM_INPUTS" type="array">
+      <obj_property name="ElementShortName">NUM_INPUTS[31:0]</obj_property>
+      <obj_property name="ObjectShortName">NUM_INPUTS[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/CLK_PERIOD" type="array">
+      <obj_property name="ElementShortName">CLK_PERIOD[31:0]</obj_property>
+      <obj_property name="ObjectShortName">CLK_PERIOD[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/GENERATED_NUM_WINDOWS" type="array">
+      <obj_property name="ElementShortName">GENERATED_NUM_WINDOWS[31:0]</obj_property>
+      <obj_property name="ObjectShortName">GENERATED_NUM_WINDOWS[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/GENERATED_IMAGE_WIDTH" type="array">
+      <obj_property name="ElementShortName">GENERATED_IMAGE_WIDTH[31:0]</obj_property>
+      <obj_property name="ObjectShortName">GENERATED_IMAGE_WIDTH[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/GENERATED_IMAGE_HEIGHT" type="array">
+      <obj_property name="ElementShortName">GENERATED_IMAGE_HEIGHT[31:0]</obj_property>
+      <obj_property name="ObjectShortName">GENERATED_IMAGE_HEIGHT[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/GENERATED_OUTPUT_WIDTH" type="array">
+      <obj_property name="ElementShortName">GENERATED_OUTPUT_WIDTH[31:0]</obj_property>
+      <obj_property name="ObjectShortName">GENERATED_OUTPUT_WIDTH[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/GENERATED_OUTPUT_HEIGHT" type="array">
+      <obj_property name="ElementShortName">GENERATED_OUTPUT_HEIGHT[31:0]</obj_property>
+      <obj_property name="ObjectShortName">GENERATED_OUTPUT_HEIGHT[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/GENERATED_SCALE_FACTOR" type="array">
+      <obj_property name="ElementShortName">GENERATED_SCALE_FACTOR[31:0]</obj_property>
+      <obj_property name="ObjectShortName">GENERATED_SCALE_FACTOR[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/rst" type="logic">
+      <obj_property name="ElementShortName">rst</obj_property>
+      <obj_property name="ObjectShortName">rst</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/start" type="logic">
+      <obj_property name="ElementShortName">start</obj_property>
+      <obj_property name="ObjectShortName">start</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/input_data" type="array">
+      <obj_property name="ElementShortName">input_data[0:8][31:0]</obj_property>
+      <obj_property name="ObjectShortName">input_data[0:8][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/kernel" type="array">
+      <obj_property name="ElementShortName">kernel[0:8][31:0]</obj_property>
+      <obj_property name="ObjectShortName">kernel[0:8][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/scale_factor" type="array">
+      <obj_property name="ElementShortName">scale_factor[31:0]</obj_property>
+      <obj_property name="ObjectShortName">scale_factor[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/result" type="array">
+      <obj_property name="ElementShortName">result[31:0]</obj_property>
+      <obj_property name="ObjectShortName">result[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/done" type="logic">
+      <obj_property name="ElementShortName">done</obj_property>
+      <obj_property name="ObjectShortName">done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/mult_done_bus" type="array">
+      <obj_property name="ElementShortName">mult_done_bus[8:0]</obj_property>
+      <obj_property name="ObjectShortName">mult_done_bus[8:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/mult_product" type="array">
+      <obj_property name="ElementShortName">mult_product[0:8][63:0]</obj_property>
+      <obj_property name="ObjectShortName">mult_product[0:8][63:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/mult_product_ext" type="array">
+      <obj_property name="ElementShortName">mult_product_ext[0:8][71:0]</obj_property>
+      <obj_property name="ObjectShortName">mult_product_ext[0:8][71:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/mult_start" type="logic">
+      <obj_property name="ElementShortName">mult_start</obj_property>
+      <obj_property name="ObjectShortName">mult_start</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/stage2_en" type="logic">
+      <obj_property name="ElementShortName">stage2_en</obj_property>
+      <obj_property name="ObjectShortName">stage2_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/stage3_en" type="logic">
+      <obj_property name="ElementShortName">stage3_en</obj_property>
+      <obj_property name="ObjectShortName">stage3_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/div9_start" type="logic">
+      <obj_property name="ElementShortName">div9_start</obj_property>
+      <obj_property name="ObjectShortName">div9_start</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/div_start" type="logic">
+      <obj_property name="ElementShortName">div_start</obj_property>
+      <obj_property name="ObjectShortName">div_start</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/output_valid" type="logic">
+      <obj_property name="ElementShortName">output_valid</obj_property>
+      <obj_property name="ObjectShortName">output_valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/controller_state" type="array">
+      <obj_property name="ElementShortName">controller_state[3:0]</obj_property>
+      <obj_property name="ObjectShortName">controller_state[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/all_mult_done" type="logic">
+      <obj_property name="ElementShortName">all_mult_done</obj_property>
+      <obj_property name="ObjectShortName">all_mult_done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/stage1_products" type="array">
+      <obj_property name="ElementShortName">stage1_products[0:8][71:0]</obj_property>
+      <obj_property name="ObjectShortName">stage1_products[0:8][71:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/stage2_partial" type="array">
+      <obj_property name="ElementShortName">stage2_partial[0:2][71:0]</obj_property>
+      <obj_property name="ObjectShortName">stage2_partial[0:2][71:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/stage3_sum" type="array">
+      <obj_property name="ElementShortName">stage3_sum[71:0]</obj_property>
+      <obj_property name="ObjectShortName">stage3_sum[71:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/result_reg" type="array">
+      <obj_property name="ElementShortName">result_reg[31:0]</obj_property>
+      <obj_property name="ObjectShortName">result_reg[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/partial_sum_comb" type="array">
+      <obj_property name="ElementShortName">partial_sum_comb[0:2][71:0]</obj_property>
+      <obj_property name="ObjectShortName">partial_sum_comb[0:2][71:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/total_sum_comb" type="array">
+      <obj_property name="ElementShortName">total_sum_comb[71:0]</obj_property>
+      <obj_property name="ObjectShortName">total_sum_comb[71:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/div9_result" type="array">
+      <obj_property name="ElementShortName">div9_result[71:0]</obj_property>
+      <obj_property name="ObjectShortName">div9_result[71:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/div9_done" type="logic">
+      <obj_property name="ElementShortName">div9_done</obj_property>
+      <obj_property name="ObjectShortName">div9_done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/scale_factor_ext" type="array">
+      <obj_property name="ElementShortName">scale_factor_ext[71:0]</obj_property>
+      <obj_property name="ObjectShortName">scale_factor_ext[71:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/final_result" type="array">
+      <obj_property name="ElementShortName">final_result[71:0]</obj_property>
+      <obj_property name="ObjectShortName">final_result[71:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/div_done" type="logic">
+      <obj_property name="ElementShortName">div_done</obj_property>
+      <obj_property name="ObjectShortName">div_done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/group_idx" type="array">
+      <obj_property name="ElementShortName">group_idx[31:0]</obj_property>
+      <obj_property name="ObjectShortName">group_idx[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/lane_idx" type="array">
+      <obj_property name="ElementShortName">lane_idx[31:0]</obj_property>
+      <obj_property name="ObjectShortName">lane_idx[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/reg_idx" type="array">
+      <obj_property name="ElementShortName">reg_idx[31:0]</obj_property>
+      <obj_property name="ObjectShortName">reg_idx[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/WIDTH" type="array">
+      <obj_property name="ElementShortName">WIDTH[31:0]</obj_property>
+      <obj_property name="ObjectShortName">WIDTH[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/ACC_WIDTH" type="array">
+      <obj_property name="ElementShortName">ACC_WIDTH[31:0]</obj_property>
+      <obj_property name="ObjectShortName">ACC_WIDTH[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/NUM_INPUTS" type="array">
+      <obj_property name="ElementShortName">NUM_INPUTS[31:0]</obj_property>
+      <obj_property name="ObjectShortName">NUM_INPUTS[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/PIPELINE_LANES" type="array">
+      <obj_property name="ElementShortName">PIPELINE_LANES[31:0]</obj_property>
+      <obj_property name="ObjectShortName">PIPELINE_LANES[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/dut/GROUP_SIZE" type="array">
+      <obj_property name="ElementShortName">GROUP_SIZE[31:0]</obj_property>
+      <obj_property name="ObjectShortName">GROUP_SIZE[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_output_vram" type="array">
+      <obj_property name="ElementShortName">generated_output_vram[0:25][0:25][31:0]</obj_property>
+      <obj_property name="ObjectShortName">generated_output_vram[0:25][0:25][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/cnn_accelerator_tb/generated_output_valid" type="array">
+      <obj_property name="ElementShortName">generated_output_valid[0:25][0:25]</obj_property>
+      <obj_property name="ObjectShortName">generated_output_valid[0:25][0:25]</obj_property>
+   </wvobject>
+</wave_config>

@@ -98,15 +98,47 @@ py -3 scripts\run_image_sim.py path\to\image.png --resize 28x28 --kernel "1,0,-1
 This generates:
 - grayscale pixel CSV
 - patch CSV with pixels, kernel, intermediate math, and expected outputs
+- input-window CSV for the Vivado handoff
 - metadata JSON describing the image size, kernel, and window counts
 - Verilog include file for the generated windows
+- golden output feature-map CSV for reference checking
+- hardware `output.csv` written by the generated-image testbench
+- per-window `output_trace.csv`
+- output comparison CSV for quick cross-verification
 - compiled simulation output in `sim_output/`
 
 Useful options for the image flow:
 
 - `--limit-windows N` limits how many windows are written to the CSV outputs
-- `--verilog-window-limit N` limits how many windows are compiled into the generated Verilog include
+- `--verilog-window-limit N` limits how many windows are compiled into the generated Verilog include, and if omitted all emitted windows are simulated
 - `--output-dir path\to\dir` changes the generated-data directory
+- `--prepare-only` stops after generating `input_windows.csv`, `golden_output.csv`, and the Vivado handoff files
+
+### Vivado Waveform View
+
+If you want the Python step to only prepare the files for Vivado, run:
+
+```powershell
+py -3 scripts\run_image_sim.py path\to\image.png --resize 28x28 --prepare-only
+```
+
+Then open Vivado and run the generated-image testbench:
+
+```powershell
+vivado -mode gui -source vivado/run_generated_image_sim.tcl -tclargs generated_data
+```
+
+If you used a custom output directory, pass that directory instead of `generated_data`.
+
+The Vivado script:
+- opens or creates a saved Vivado simulation project under `vivado_build/`
+- points `cnn_accelerator_tb` at your generated `generated_windows.vh`
+- enables `USE_GENERATED_IMAGE_DATA`
+- launches behavioral simulation
+- adds common top-level and DUT waves
+- writes `output.csv` and `output_trace.csv` into the generated-data folder
+- runs the Python comparison helper to produce `output_comparison.csv`
+- keeps the waveform open in Vivado so you can inspect the hardware trace
 
 ## Parameters
 

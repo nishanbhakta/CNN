@@ -5,12 +5,26 @@
 
 `timescale 1ns/1ps
 
+`ifndef CNN_VCD_FILE
+`define CNN_VCD_FILE "cnn_accelerator_tb.vcd"
+`endif
+
 module cnn_accelerator_tb;
 
     parameter WIDTH = 32;
     parameter ACC_WIDTH = 72;
     parameter NUM_INPUTS = 9;
     parameter CLK_PERIOD = 10;
+
+`ifdef USE_GENERATED_IMAGE_DATA
+`ifndef CNN_ACTUAL_OUTPUT_CSV
+`define CNN_ACTUAL_OUTPUT_CSV "output.csv"
+`endif
+`ifndef CNN_ACTUAL_TRACE_CSV
+`define CNN_ACTUAL_TRACE_CSV "output_trace.csv"
+`endif
+`include "generated_windows.vh"
+`endif
 
     reg clk;
     reg rst;
@@ -28,9 +42,18 @@ module cnn_accelerator_tb;
     integer fail_count;
     integer accuracy_hundredths;
     integer i;
+    integer current_output_row;
+    integer current_output_col;
+    integer simulation_timeout_cycles;
 
 `ifdef USE_GENERATED_IMAGE_DATA
-`include "generated_windows.vh"
+    reg capture_generated_output;
+    reg signed [WIDTH-1:0] generated_output_vram [0:GENERATED_OUTPUT_HEIGHT-1][0:GENERATED_OUTPUT_WIDTH-1];
+    reg generated_output_valid [0:GENERATED_OUTPUT_HEIGHT-1][0:GENERATED_OUTPUT_WIDTH-1];
+    integer generated_output_fd;
+    integer generated_trace_fd;
+    integer generated_row_index;
+    integer generated_col_index;
 `endif
 
 `ifdef USE_CSV_TEST_DATA
@@ -74,7 +97,7 @@ module cnn_accelerator_tb;
     end
 
     initial begin
-        $dumpfile("cnn_accelerator_tb.vcd");
+        $dumpfile(`CNN_VCD_FILE);
         $dumpvars(0, cnn_accelerator_tb);
     end
 
@@ -160,6 +183,93 @@ module cnn_accelerator_tb;
         end
     endtask
 
+`ifdef USE_GENERATED_IMAGE_DATA
+    task initialize_generated_output_vram;
+        begin
+            for (generated_row_index = 0; generated_row_index < GENERATED_OUTPUT_HEIGHT; generated_row_index = generated_row_index + 1) begin
+                for (generated_col_index = 0; generated_col_index < GENERATED_OUTPUT_WIDTH; generated_col_index = generated_col_index + 1) begin
+                    generated_output_vram[generated_row_index][generated_col_index] = 0;
+                    generated_output_valid[generated_row_index][generated_col_index] = 1'b0;
+                end
+            end
+        end
+    endtask
+
+    task open_generated_trace_csv;
+        begin
+            generated_trace_fd = $fopen(`CNN_ACTUAL_TRACE_CSV, "w");
+            if (generated_trace_fd == 0) begin
+                $display("\n*** ERROR: Could not open output trace CSV: %s ***", `CNN_ACTUAL_TRACE_CSV);
+                $finish;
+            end
+            $fwrite(
+                generated_trace_fd,
+                "test_id,row,col,hardware_result,expected_result,status\n"
+            );
+        end
+    endtask
+
+    task record_generated_output;
+        begin
+            generated_output_vram[current_output_row][current_output_col] = $signed(result);
+            generated_output_valid[current_output_row][current_output_col] = 1'b1;
+
+            if (generated_trace_fd != 0) begin
+                if ($signed(result) == expected_result) begin
+                    $fwrite(
+                        generated_trace_fd,
+                        "%0d,%0d,%0d,%0d,%0d,PASS\n",
+                        test_num,
+                        current_output_row,
+                        current_output_col,
+                        $signed(result),
+                        expected_result
+                    );
+                end else begin
+                    $fwrite(
+                        generated_trace_fd,
+                        "%0d,%0d,%0d,%0d,%0d,FAIL\n",
+                        test_num,
+                        current_output_row,
+                        current_output_col,
+                        $signed(result),
+                        expected_result
+                    );
+                end
+            end
+        end
+    endtask
+
+    task write_generated_output_csv;
+        begin
+            generated_output_fd = $fopen(`CNN_ACTUAL_OUTPUT_CSV, "w");
+            if (generated_output_fd == 0) begin
+                $display("\n*** ERROR: Could not open output CSV: %s ***", `CNN_ACTUAL_OUTPUT_CSV);
+                $finish;
+            end
+
+            for (generated_row_index = 0; generated_row_index < GENERATED_OUTPUT_HEIGHT; generated_row_index = generated_row_index + 1) begin
+                for (generated_col_index = 0; generated_col_index < GENERATED_OUTPUT_WIDTH; generated_col_index = generated_col_index + 1) begin
+                    if (generated_col_index > 0) begin
+                        $fwrite(generated_output_fd, ",");
+                    end
+
+                    if (generated_output_valid[generated_row_index][generated_col_index]) begin
+                        $fwrite(
+                            generated_output_fd,
+                            "%0d",
+                            generated_output_vram[generated_row_index][generated_col_index]
+                        );
+                    end
+                end
+                $fwrite(generated_output_fd, "\n");
+            end
+
+            $fclose(generated_output_fd);
+        end
+    endtask
+`endif
+
     task run_test;
         reg signed [ACC_WIDTH-1:0] computed_accumulator;
         reg signed [ACC_WIDTH-1:0] computed_after_div9;
@@ -200,6 +310,12 @@ module cnn_accelerator_tb;
                 $display("Status   : FAIL");
             end
 
+`ifdef USE_GENERATED_IMAGE_DATA
+            if (capture_generated_output) begin
+                record_generated_output();
+            end
+`endif
+
             accuracy_hundredths = compute_accuracy_hundredths(pass_count, total_tests);
             $display(
                 "Accuracy : %0d.%02d%% (%0d/%0d)",
@@ -224,14 +340,22 @@ module cnn_accelerator_tb;
             end
             scale_factor = GENERATED_SCALE_FACTOR;
             expected_result = generated_expected_results[window_index];
+            current_output_row = generated_window_rows[window_index];
+            current_output_col = generated_window_cols[window_index];
         end
     endtask
 
     task run_generated_tests;
         integer window_index;
         begin
+            capture_generated_output = 1'b1;
+            initialize_generated_output_vram();
+            open_generated_trace_csv();
+
             $display("\n========================================");
             $display("Generated Image Data Mode");
+            $display("Image size    : %0dx%0d", GENERATED_IMAGE_WIDTH, GENERATED_IMAGE_HEIGHT);
+            $display("Output size   : %0dx%0d", GENERATED_OUTPUT_WIDTH, GENERATED_OUTPUT_HEIGHT);
             $display("Total windows: %0d", GENERATED_NUM_WINDOWS);
             $display("Scale factor: %0d", GENERATED_SCALE_FACTOR);
             $display("========================================");
@@ -248,6 +372,14 @@ module cnn_accelerator_tb;
                 );
                 run_test();
             end
+
+            write_generated_output_csv();
+            $fclose(generated_trace_fd);
+            generated_trace_fd = 0;
+            capture_generated_output = 1'b0;
+
+            $display("Output CSV       : %s", `CNN_ACTUAL_OUTPUT_CSV);
+            $display("Output trace CSV : %s", `CNN_ACTUAL_TRACE_CSV);
         end
     endtask
 `endif
@@ -374,6 +506,14 @@ module cnn_accelerator_tb;
         accuracy_hundredths = 0;
         rst = 1;
         start = 0;
+        current_output_row = 0;
+        current_output_col = 0;
+
+`ifdef USE_GENERATED_IMAGE_DATA
+        capture_generated_output = 1'b0;
+        generated_output_fd = 0;
+        generated_trace_fd = 0;
+`endif
 
         for (i = 0; i < NUM_INPUTS; i = i + 1) begin
             input_data[i] = 0;
@@ -501,7 +641,15 @@ module cnn_accelerator_tb;
     end
 
     initial begin
-        #(CLK_PERIOD * 10000);
+`ifdef USE_GENERATED_IMAGE_DATA
+        simulation_timeout_cycles = (GENERATED_NUM_WINDOWS * 250) + 1000;
+`elsif USE_CSV_TEST_DATA
+        simulation_timeout_cycles = 200000;
+`else
+        simulation_timeout_cycles = 10000;
+`endif
+
+        #(CLK_PERIOD * simulation_timeout_cycles);
         $display("\n*** ERROR: Simulation timeout! ***");
         $finish;
     end
