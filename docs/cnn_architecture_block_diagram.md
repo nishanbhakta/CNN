@@ -11,6 +11,9 @@ Scope:
 Legend:
 - Solid arrows show dataflow.
 - Dashed arrows show control or handshake flow.
+- `REG` blocks are explicit sequential storage points in the RTL.
+- `MUX` blocks represent inferred select logic from `if`/conditional RTL.
+- Comparator diamonds represent explicit decision points used for control or correction.
 
 Important implementation note:
 - The current top-level accelerator is not built from chained MAC blocks. It uses 9 parallel multipliers followed by staged reduction, then `/9`, then `/K`.
@@ -24,28 +27,33 @@ flowchart LR
     start([External start pulse]) -.-> ctrl["controller_Version2<br/>registered pulse scheduler"]
 
     in["input_data[0:8]<br/>kernel[0:8]"] --> mult["9x multiplier<br/>32x32 signed -> 64-bit<br/>parallel launch"]
-    mult --> sx["sign extension<br/>64-bit -> 72-bit"]
-    sx --> s1["stage1_products[0:8]<br/>latched when all_mult_done"]
-    s1 --> red2["Stage 2 reduction<br/>3 grouped partial sums"]
-    red2 --> s2["stage2_partial[0:2]<br/>72-bit registers"]
-    s2 --> red3["Stage 3 reduction<br/>sum 3 partial sums"]
-    red3 --> s3["stage3_sum<br/>72-bit register"]
-    s3 --> div9["divide_by_9_Version2<br/>72-bit reciprocal path<br/>4 pipeline stages"]
-    scale["scale_factor[31:0]"] --> sext["sign extension<br/>32-bit -> 72-bit"]
-    div9 --> divk["divider_Version2<br/>72-bit signed non-restoring divider<br/>iterative final /K stage"]
-    sext --> divk
-    divk --> out["result_reg[31:0]<br/>final 32-bit output latch"]
-    out --> result([result])
+    mult --> sx["Sign extension<br/>64-bit -> 72-bit"]
+    sx --> reg1[["REG BANK<br/>stage1_products[0:8]"]]
+    reg1 --> red2["Adder tree / grouped reduction<br/>3 partial sums"]
+    red2 --> reg2[["REG BANK<br/>stage2_partial[0:2]"]]
+    reg2 --> red3["Final adder<br/>sum of 3 partial sums"]
+    red3 --> reg3[["REG<br/>stage3_sum"]]
+    reg3 --> div9["divide_by_9_Version2<br/>72-bit reciprocal + correction pipeline"]
+    scale["scale_factor[31:0]"] --> sext["Sign extension<br/>32-bit -> 72-bit"]
+    sext --> regsf[["REG / operand hold<br/>scale_factor_ext path"]]
+    div9 --> divk["divider_Version2<br/>72-bit non-restoring iterative divider"]
+    regsf --> divk
+    divk --> regout[["REG<br/>result_reg[31:0]"]]
+    regout --> result([result])
 
-    mult -. "mult_done_bus[8:0]" .-> allm["AND reduce<br/>all_mult_done"]
+    mult -. "mult_done_bus[8:0]" .-> allm{"all_mult_done?"}
+    allm -. "capture enable" .-> reg1
     allm -.-> ctrl
     ctrl -. "mult_start" .-> mult
-    ctrl -. "stage2_en" .-> s2
-    ctrl -. "stage3_en" .-> s3
+    ctrl -. "stage2_en" .-> reg2
+    ctrl -. "stage3_en" .-> reg3
     ctrl -. "div9_start" .-> div9
-    div9 -. "div9_done" .-> ctrl
+    div9 -. "div9_done" .-> cmp9{"div9_done?"}
+    cmp9 -.-> ctrl
     ctrl -. "div_start" .-> divk
-    divk -. "div_done" .-> ctrl
+    divk -. "div_done" .-> cmpk{"div_done?"}
+    cmpk -.-> ctrl
+    cmpk -. "result capture" .-> regout
     ctrl -. "output_valid" .-> done([done])
 ```
 
@@ -65,6 +73,65 @@ For the current parameters:
 - `PIPELINE_LANES = 3`
 - `GROUP_SIZE = 3`
 - Multiply fanout is parallel, but patch launches are still controlled one patch at a time in the verified flow.
+
+## 1A. RTL-Style Datapath Detail With Explicit `REG`, `MUX`, And Comparator Blocks
+
+This view makes the hidden hardware decisions more explicit.
+
+```mermaid
+flowchart LR
+    subgraph FE["Front-end reduction pipeline"]
+        p["Patch pixels x0..x8<br/>Kernel h0..h8"] --> pm["9x Parallel Multipliers"]
+        pm --> r1[["REG<br/>stage1_products"]]
+        r1 --> addg["Adder groups<br/>[0..2] [3..5] [6..8]"]
+        addg --> r2[["REG<br/>stage2_partial[0:2]"]]
+        r2 --> addf["Final 3-input adder"]
+        addf --> r3[["REG<br/>stage3_sum"]]
+    end
+
+    subgraph D9["Exact /9 block"]
+        r3 --> abs9["Abs + sign extraction"]
+        abs9 --> d9r1[["REG S1<br/>abs_dividend_s1<br/>sign_s1<br/>valid_s1"]]
+        d9r1 --> recip["Multiply by RECIP_CONST"]
+        recip --> d9r2[["REG S2<br/>recip_product_s2<br/>abs_dividend_s2<br/>sign_s2<br/>valid_s2"]]
+        d9r2 --> qest["Shift-right quotient estimate"]
+        d9r2 --> cmp9a{"q_est*9 > abs_dividend ?"}
+        qest --> mux9a["MUX<br/>q_est or q_est-1"]
+        cmp9a -. control .-> mux9a
+        mux9a --> rem9["Remainder calculation"]
+        rem9 --> d9r3[["REG S3<br/>quotient_abs_s3<br/>remainder_s3<br/>sign_s3<br/>valid_s3"]]
+        d9r3 --> cmp9b{"remainder >= 9 ?"}
+        d9r3 --> mux9b["MUX<br/>+0 / +1 / +2 correction"]
+        cmp9b -. control .-> mux9b
+        mux9b --> signmux9["MUX<br/>apply sign"]
+        signmux9 --> d9r4[["REG S4<br/>quotient_s4<br/>valid_s4"]]
+    end
+
+    subgraph DK["Final /K divider"]
+        d9r4 --> divshift[["REG<br/>dividend_shift_reg"]]
+        k["scale_factor"] --> signextk["Sign extension"]
+        signextk --> divkreg[["REG<br/>divisor_abs_reg"]]
+        divshift --> sh["Shift remainder and next dividend bit"]
+        divkreg --> addsubmux["MUX<br/>+divisor or -divisor"]
+        remreg[["REG<br/>remainder_reg"]] --> sh
+        remreg --> cmpd{"remainder sign ?"}
+        sh --> addsub["Adder/Subtractor"]
+        addsubmux --> addsub
+        cmpd -. control .-> addsubmux
+        addsub --> remnext[["REG writeback<br/>remainder_next"]]
+        remnext --> remreg
+        addsub --> qbit["Quotient-bit generation<br/>~remainder_next[MSB]"]
+        qbit --> qreg[["REG<br/>quotient_abs_reg"]]
+        countreg[["REG<br/>count_reg"]] --> cmpdone{"count == 1 ?"}
+        cmpdone -. done/control .-> outreg[["REG<br/>result_reg"]]
+        outreg --> finalqd([Quotient / done])
+    end
+```
+
+Reading tip:
+- The front-end is mostly regular pipeline storage plus adder reduction.
+- The `/9` block uses comparator-driven correction MUXes.
+- The final divider uses a sign comparator plus an add/sub MUX every iteration, then stores the next remainder and quotient bit in registers.
 
 ## 2. Control Schedule Used By `controller_Version2`
 
@@ -111,11 +178,18 @@ flowchart LR
     runner --> load["Load one window into<br/>input_data[0:8], kernel[0:8], scale_factor"]
     load -. "accelerator_start" .-> core["cnn_accelerator"]
     core -. "accelerator_done" .-> runner
-    core --> store["stored_outputs BRAM<br/>compare with expected<br/>completed_windows++<br/>mismatch_count update"]
-
-    store --> browse["browse index mux"]
-    browse --> led["LED[15:0]"]
-    browse --> seg["7-seg signed decimal"]
+    core --> store[["REG / BRAM<br/>stored_outputs[]"]]
+    gold --> cmpres{"accelerator_result<br/>== expected ?"}
+    core --> cmpres
+    cmpres --> mm["Mismatch counter update"]
+    runner --> cwin[["REG<br/>completed_windows_reg"]]
+    top --> bidx[["REG<br/>browse_index_reg"]]
+    store --> dmux["MUX<br/>completed_windows or stored_outputs[display_index]"]
+    cwin --> dmux
+    bidx --> cmpidx{"display_index < total_windows ?"}
+    cmpidx -. enable .-> dmux
+    dmux --> led["LED[15:0]"]
+    dmux --> seg["7-seg signed decimal"]
 ```
 
 Runtime behavior:
