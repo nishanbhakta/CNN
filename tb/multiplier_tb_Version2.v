@@ -1,6 +1,7 @@
 `timescale 1ns/1ps
 
 // Basic sanity testbench for the pipelined signed multiplier.
+// Validates 32-bit multiplication with proper sign handling.
 // Clock period: 10ns. The DUT asserts done one cycle after start.
 
 module multiplier_tb ();
