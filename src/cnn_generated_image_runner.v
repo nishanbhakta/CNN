@@ -26,6 +26,7 @@ module cnn_generated_image_runner #(
     output display_value_valid
 );
 
+    // Simple sequencer: load one generated window, run the accelerator, store the result.
     localparam [2:0] STATE_IDLE = 3'd0;
     localparam [2:0] STATE_LOAD = 3'd1;
     localparam [2:0] STATE_START = 3'd2;
@@ -35,8 +36,10 @@ module cnn_generated_image_runner #(
 
 `include "generated_windows.vh"
 
+    // Local copies of the active patch and kernel presented to the accelerator.
     reg signed [WIDTH-1:0] input_data [0:NUM_INPUTS-1];
     reg signed [WIDTH-1:0] kernel [0:NUM_INPUTS-1];
+    // Result RAM lets the board wrapper revisit previously computed outputs.
     (* ram_style = "block" *) reg signed [15:0] stored_outputs [0:GENERATED_NUM_WINDOWS-1];
     reg signed [WIDTH-1:0] scale_factor;
     reg accelerator_start;
@@ -98,6 +101,7 @@ module cnn_generated_image_runner #(
                 STATE_IDLE: begin
                     done_reg <= 1'b0;
                     if (start) begin
+                        // Reset counters and begin replaying the generated windows from index 0.
                         window_index_reg <= {COUNT_WIDTH{1'b0}};
                         completed_windows_reg <= {COUNT_WIDTH{1'b0}};
                         mismatch_count_reg <= {COUNT_WIDTH{1'b0}};
@@ -118,6 +122,7 @@ module cnn_generated_image_runner #(
                 end
 
                 STATE_LOAD: begin
+                    // Load the next generated window and expected reference result.
                     scale_factor <= GENERATED_SCALE_FACTOR;
                     current_row_reg <= generated_window_rows[window_index_reg];
                     current_col_reg <= generated_window_cols[window_index_reg];
@@ -132,12 +137,14 @@ module cnn_generated_image_runner #(
                 end
 
                 STATE_START: begin
+                    // Pulse the accelerator start for exactly one cycle.
                     accelerator_start <= 1'b1;
                     state <= STATE_WAIT;
                 end
 
                 STATE_WAIT: begin
                     if (accelerator_done) begin
+                        // Save the computed result and update completion/mismatch counters.
                         last_result_reg <= accelerator_result;
                         stored_outputs[window_index_reg] <= accelerator_result[15:0];
                         completed_windows_reg <= window_index_reg + 1'b1;
@@ -159,6 +166,7 @@ module cnn_generated_image_runner #(
 
                 STATE_DONE: begin
                     if (start) begin
+                        // Allow a fresh replay without requiring a global reset.
                         done_reg <= 1'b0;
                         window_index_reg <= {COUNT_WIDTH{1'b0}};
                         completed_windows_reg <= {COUNT_WIDTH{1'b0}};
@@ -188,6 +196,7 @@ module cnn_generated_image_runner #(
     end
 
     always @(*) begin
+        // Expose a stored result only after the full run has completed.
         display_value_reg = 16'sd0;
         if ((display_index < TOTAL_WINDOW_COUNT) && done_reg) begin
             display_value_reg = stored_outputs[display_index];
