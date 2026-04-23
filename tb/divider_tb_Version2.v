@@ -1,5 +1,6 @@
 `timescale 1ns/1ps
 
+// Integer divider unit testbench
 module divider_tb ();
 
     reg clk;
