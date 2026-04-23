@@ -1,5 +1,7 @@
 `timescale 1ns/1ps
 
+// UART result streamer testbench
+// Validates the streaming of results over serial communication
 module uart_result_streamer_tb;
 
     localparam integer CLK_PERIOD = 10;
