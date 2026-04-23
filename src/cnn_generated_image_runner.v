@@ -1,5 +1,5 @@
 /*
-  Low-I/O implementation wrapper for generated image datasets.
+    Low-I/O wrapper for generated-image datasets.
   - Includes generated windows internally instead of exposing them as top-level ports
   - Replays each generated 3x3 patch through cnn_accelerator
   - Stores each 16-bit result so the board wrapper can browse outputs later
