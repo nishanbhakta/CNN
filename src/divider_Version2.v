@@ -1,9 +1,9 @@
 /*
     Signed non-restoring divider.
-    - Latches the input operands when `start` is asserted.
-    - Runs one non-restoring iteration per cycle for `WIDTH` cycles.
-    - Avoids `/` and `%` in the synthesizable datapath.
-    - Pulses `done` for one cycle when quotient and remainder are valid.
+    - Captures input operands when start is asserted.
+    - Runs one non-restoring iteration per cycle for WIDTH cycles.
+    - Avoids division and modulo operators in the synthesizable datapath.
+    - Pulses done for one cycle when quotient and remainder are valid.
  */
 
 module divider #(

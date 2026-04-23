@@ -1,8 +1,8 @@
 /*
-  CNN Hardware Accelerator - without final divider stage
-  Outputs divide-by-9 result for external divider parallelization
-  
-  Output = (sum(xi * hi)) / 9
+    CNN hardware accelerator front end (no final scale division stage).
+    Exposes the divide-by-9 output so downstream divider lanes can run in parallel.
+
+    Datapath output: (sum(xi * hi)) / 9
 */
 
 module cnn_accelerator_frontend #(
@@ -23,6 +23,7 @@ module cnn_accelerator_frontend #(
     output signed [WIDTH-1:0] div9_scale_factor
 );
 
+    // Multiplier outputs, summed accumulator value, and divide-by-9 handshake.
     wire [NUM_INPUTS-1:0] mult_done_bus;
     wire signed [2*WIDTH-1:0] mult_product [0:NUM_INPUTS-1];
     wire signed [ACC_WIDTH-1:0] mult_product_ext [0:NUM_INPUTS-1];
@@ -31,6 +32,7 @@ module cnn_accelerator_frontend #(
     wire all_mult_done = &mult_done_bus;
     wire div9_done_wire;
 
+    // Busy flags keep the front end from launching overlapping operations.
     reg signed [WIDTH-1:0] result_scale_factor;
     reg mul_busy;
     reg div9_busy;
@@ -40,11 +42,13 @@ module cnn_accelerator_frontend #(
     reg signed [WIDTH-1:0] sum_scale_reg;
     reg sum_valid;
 
+    // One-cycle pulse generators for the multiplier bank and divide-by-9 block.
     reg mult_start_reg;
     reg div9_start_reg;
 
     integer idx;
 
+    // One multiplier per 3x3 patch element.
     genvar mult_idx;
     generate
         for (mult_idx = 0; mult_idx < NUM_INPUTS; mult_idx = mult_idx + 1) begin : gen_parallel_mult
@@ -65,6 +69,7 @@ module cnn_accelerator_frontend #(
     endgenerate
 
     always @(*) begin
+        // Reduce the parallel multiplier outputs into one accumulator value.
         sum_from_mult = {ACC_WIDTH{1'b0}};
         for (idx = 0; idx < NUM_INPUTS; idx = idx + 1) begin
             sum_from_mult = sum_from_mult + mult_product_ext[idx];
@@ -95,20 +100,20 @@ module cnn_accelerator_frontend #(
             mult_start_reg <= 1'b0;
             div9_start_reg <= 1'b0;
 
-            // When divide-by-9 completes, capture the scale factor for output
+            // Keep the matching scale factor aligned with the completed div9 result.
             if (div9_done_wire) begin
                 result_scale_factor <= sum_scale_reg;
                 div9_busy <= 1'b0;
             end
 
-            // Launch divide-by-9 when sum is ready
+            // Fire the divide-by-9 stage once the summed products are available.
             if (sum_valid && !div9_busy) begin
                 div9_start_reg <= 1'b1;
                 div9_busy <= 1'b1;
                 sum_valid <= 1'b0;
             end
 
-            // Latch multiplier results when all multiplies complete
+            // Snapshot the reduction result only after all parallel multiplies finish.
             if (all_mult_done && mul_busy) begin
                 sum_reg <= sum_from_mult;
                 sum_scale_reg <= mul_scale_reg;
@@ -116,7 +121,7 @@ module cnn_accelerator_frontend #(
                 mul_busy <= 1'b0;
             end
 
-            // Launch multipliers when start pulse is received
+            // Start a fresh multiply pass when the caller provides new inputs.
             if (start && !mul_busy) begin
                 mul_scale_reg <= scale_factor;
                 mult_start_reg <= 1'b1;

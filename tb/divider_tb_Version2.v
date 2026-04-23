@@ -32,7 +32,7 @@ module divider_tb ();
         $dumpvars(0, divider_tb);
     end
 
-    // Launch one signed division, wait for completion, and print the result.
+    // Launch one signed division, wait for done, then print the observed result.
     task run_division;
         input signed [31:0] dividend_value;
         input signed [31:0] divisor_value;
@@ -62,7 +62,7 @@ module divider_tb ();
         dividend = 0;
         divisor = 0;
 
-        // Release reset, then run a few representative signed division cases.
+        // Release reset, then run a few representative signed-division scenarios.
         @(negedge clk);
         rst = 0;
 

@@ -1,5 +1,6 @@
 /*
-  Test original accelerator to verify it still works
+    Regression smoke test for the original accelerator configuration.
+    Keeps INCLUDE_FINAL_DIVIDER enabled and checks legacy end-to-end behavior.
 */
 
 `timescale 1ns / 1ps
@@ -40,6 +41,7 @@ module cnn_accel_original_tb;
         .div9_scale_factor_out()
     );
 
+    // Free-running simulation clock.
     always #5 clk = ~clk;
 
     initial begin
@@ -51,7 +53,7 @@ module cnn_accel_original_tb;
         rst = 0;
         repeat (5) @(posedge clk);
         
-        // Test case: All ones
+        // Sanity check that the legacy top-level path still produces one output.
         $display("Test: All ones with INCLUDE_FINAL_DIVIDER=1 (original behavior)");
         begin
             integer i;
@@ -65,7 +67,7 @@ module cnn_accel_original_tb;
             @(posedge clk);
             start = 0;
             
-            // Wait for output
+            // Allow enough time for the full datapath, including the final divider.
             repeat (120) @(posedge clk);
             
             if (done) begin

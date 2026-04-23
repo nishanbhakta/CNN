@@ -38,7 +38,7 @@ module cnn_accelerator_multi_div_tb #(
         .done(done)
     );
 
-    // Free-running simulation clock.
+    // Free-running simulation clock generator.
     always #5 clk = ~clk;
 
     // Software reference for (sum / 9) / scale_factor.

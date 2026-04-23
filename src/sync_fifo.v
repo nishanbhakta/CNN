@@ -1,7 +1,7 @@
 /*
-  Simple synchronous FIFO with single-clock read/write ports.
-  - Combinational read at current head (dout)
-  - Supports simultaneous push and pop
+    Simple synchronous FIFO with single-clock read/write ports.
+    - Presents the current head entry on dout each cycle.
+    - Supports simultaneous push and pop operations.
 */
 
 module sync_fifo #(
@@ -21,6 +21,7 @@ module sync_fifo #(
     localparam ADDR_WIDTH = (DEPTH <= 2) ? 1 : $clog2(DEPTH);
     localparam COUNT_WIDTH = $clog2(DEPTH + 1);
 
+    // Storage plus head/tail pointers for the circular buffer.
     (* ram_style = "block" *) reg [WIDTH-1:0] mem [0:DEPTH-1];
     reg [ADDR_WIDTH-1:0] wr_ptr;
     reg [ADDR_WIDTH-1:0] rd_ptr;
@@ -41,6 +42,7 @@ module sync_fifo #(
             count <= {COUNT_WIDTH{1'b0}};
             dout_reg <= {WIDTH{1'b0}};
         end else begin
+            // Present the current head entry every cycle.
             dout_reg <= mem[rd_ptr];
 
             if (do_write) begin
@@ -60,6 +62,7 @@ module sync_fifo #(
                 end
             end
 
+            // Update occupancy for write-only, read-only, or simultaneous access.
             case ({do_write, do_read})
                 2'b10: count <= count + 1'b1;
                 2'b01: count <= count - 1'b1;

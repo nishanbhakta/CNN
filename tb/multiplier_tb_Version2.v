@@ -1,5 +1,8 @@
 `timescale 1ns/1ps
 
+// Basic sanity testbench for the pipelined signed multiplier.
+// Clock period: 10ns. The DUT asserts done one cycle after start.
+
 module multiplier_tb ();
 
     reg clk;
@@ -35,6 +38,7 @@ module multiplier_tb ();
         input signed [31:0] b_value;
         input signed [63:0] expected_product;
         begin
+            // Drive operands and pulse start for one clock cycle.
             @(negedge clk);
             a = a_value;
             b = b_value;
@@ -43,6 +47,7 @@ module multiplier_tb ();
             @(negedge clk);
             start = 0;
 
+            // Wait for completion handshake, then report observed result.
             @(posedge done);
             #1;
             $display(
@@ -61,6 +66,7 @@ module multiplier_tb ();
         @(negedge clk);
         rst = 0;
 
+        // Directed tests: positive, larger positive, and signed-negative case.
         run_multiply(32'sd5, 32'sd3, 64'sd15);
         run_multiply(32'sd100, 32'sd200, 64'sd20000);
         run_multiply(-32'sd50, 32'sd4, -64'sd200);
