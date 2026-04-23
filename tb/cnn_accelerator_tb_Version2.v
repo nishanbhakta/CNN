@@ -1,5 +1,6 @@
 /*
   CNN accelerator testbench
+  Verifies the complete CNN accelerator pipeline.
   Formula: result = trunc_toward_zero(trunc_toward_zero(sum(xi * hi) / 9) / K)
 */
 
