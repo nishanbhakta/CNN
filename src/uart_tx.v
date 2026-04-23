@@ -19,6 +19,7 @@ module uart_tx #(
     localparam integer CLKS_PER_BIT = CLK_FREQ_HZ / BAUD_RATE;
     localparam integer COUNTER_WIDTH = $clog2(CLKS_PER_BIT);
 
+    // Shift-free frame storage: {stop bit, payload[7:0], start bit}.
     reg [COUNTER_WIDTH-1:0] baud_counter;
     reg [3:0] bit_index;
     reg [9:0] frame_reg;
@@ -40,6 +41,7 @@ module uart_tx #(
                 bit_index <= 4'd0;
 
                 if (start) begin
+                    // Launch a fresh 10-bit UART frame and drive the start bit immediately.
                     busy <= 1'b1;
                     frame_reg <= {1'b1, data, 1'b0};
                     tx <= 1'b0;
@@ -48,6 +50,7 @@ module uart_tx #(
             end else if (baud_counter != 0) begin
                 baud_counter <= baud_counter - 1'b1;
             end else begin
+                // Advance to the next serialized bit once the baud timer expires.
                 baud_counter <= CLKS_PER_BIT - 1;
 
                 if (bit_index == 4'd9) begin
