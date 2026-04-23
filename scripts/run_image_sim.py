@@ -180,6 +180,11 @@ def main() -> int:
             f'vivado -mode gui -source vivado/run_generated_image_sim.tcl -tclargs "{output_dir}"',
             flush=True,
         )
+        print(
+            "Vivado synth top: nexys_a7_generated_image_top "
+            "(generated windows stay internal and the implementation top is pinned to real Nexys A7 I/O)",
+            flush=True,
+        )
         return 0
 
     try:
@@ -267,6 +272,11 @@ def main() -> int:
     print(
         "Open in Vivado: "
         f'vivado -mode gui -source vivado/run_generated_image_sim.tcl -tclargs "{output_dir}"',
+        flush=True,
+    )
+    print(
+        "Vivado synth top: nexys_a7_generated_image_top "
+        "(generated windows stay internal and the implementation top is pinned to real Nexys A7 I/O)",
         flush=True,
     )
     print(

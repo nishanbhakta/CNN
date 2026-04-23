@@ -79,10 +79,18 @@ set source_files [list \
     [file join $repo_root "src" "divider_Version2.v"] \
     [file join $repo_root "src" "controller_Version2.v"] \
     [file join $repo_root "src" "cnn_accelerator_Version2.v"] \
+    [file join $repo_root "src" "cnn_generated_image_runner.v"] \
+    [file join $repo_root "src" "uart_tx.v"] \
+    [file join $repo_root "src" "uart_result_streamer.v"] \
+    [file join $repo_root "board" "nexys_a7_generated_image_top.v"] \
 ]
 
 set sim_files [list \
     [file join $repo_root "tb" "cnn_accelerator_tb_Version2.v"] \
+]
+
+set constraint_files [list \
+    [file join $repo_root "board" "nexys_a7_top.xdc"] \
 ]
 
 proc ensure_files_exist {files} {
@@ -94,11 +102,25 @@ proc ensure_files_exist {files} {
     }
 }
 
-proc ensure_files_in_set {fileset_name files} {
+proc sync_files_in_set {fileset_name files} {
+    set fileset [get_filesets $fileset_name]
+    set desired_files {}
+
     foreach file_path $files {
-        set existing_file [get_files -quiet -of_objects [get_filesets $fileset_name] $file_path]
+        lappend desired_files [file normalize $file_path]
+    }
+
+    foreach file_obj [get_files -quiet -of_objects $fileset] {
+        set normalized_existing [file normalize [get_property NAME $file_obj]]
+        if {[lsearch -exact $desired_files $normalized_existing] < 0} {
+            remove_files -fileset $fileset $file_obj
+        }
+    }
+
+    foreach file_path $desired_files {
+        set existing_file [get_files -quiet -of_objects $fileset $file_path]
         if {$existing_file eq ""} {
-            add_files -norecurse -fileset $fileset_name $file_path
+            add_files -norecurse -fileset $fileset $file_path
         }
     }
 }
@@ -116,6 +138,7 @@ if {![file exists $generated_include]} {
 
 ensure_files_exist $source_files
 ensure_files_exist $sim_files
+ensure_files_exist $constraint_files
 
 catch {close_sim -force}
 catch {close_project}
@@ -129,8 +152,9 @@ if {[file exists $project_file]} {
     create_project $project_name $project_dir -part $fpga_part -force
 }
 
-ensure_files_in_set sources_1 $source_files
-ensure_files_in_set sim_1 $sim_files
+sync_files_in_set sources_1 $source_files
+sync_files_in_set sim_1 $sim_files
+sync_files_in_set constrs_1 $constraint_files
 
 foreach file_path $source_files {
     set_property file_type SystemVerilog [get_files $file_path]
@@ -141,6 +165,7 @@ foreach file_path $sim_files {
 }
 
 set sim_fileset [get_filesets sim_1]
+set source_fileset [get_filesets sources_1]
 set sim_defines [list \
     USE_GENERATED_IMAGE_DATA \
     "CNN_ACTUAL_OUTPUT_CSV=\"[path_for_define $output_csv]\"" \
@@ -148,12 +173,17 @@ set sim_defines [list \
     "CNN_VCD_FILE=\"[path_for_define $vivado_vcd_file]\"" \
 ]
 
+set_property top nexys_a7_generated_image_top $source_fileset
 set_property top cnn_accelerator_tb $sim_fileset
+set_property include_dirs [list $generated_data_dir] $source_fileset
 set_property include_dirs [list $generated_data_dir] $sim_fileset
 set_property verilog_define $sim_defines $sim_fileset
 
 update_compile_order -fileset sources_1
 update_compile_order -fileset sim_1
+
+catch {reset_run synth_1}
+catch {reset_run impl_1}
 
 launch_simulation -simset sim_1 -mode behavioral
 restart
@@ -193,6 +223,7 @@ puts ""
 puts "Vivado generated-image simulation complete."
 puts "Simulation project: $project_name"
 puts "Project file       : $project_file"
+puts "Synth top          : nexys_a7_generated_image_top"
 puts "Generated data dir : $generated_data_dir"
 puts "Input CSV          : $input_windows_csv"
 puts "Golden output CSV  : $golden_output_csv"
@@ -200,4 +231,5 @@ puts "Hardware output CSV: $output_csv"
 puts "Output trace CSV   : $output_trace_csv"
 puts "Comparison CSV     : $comparison_csv"
 puts "Vivado VCD dump    : $vivado_vcd_file"
+puts "Implementation note: the synth top now wraps the generated runner in a constrained Nexys A7 board top, so bitstream generation can target real board pins."
 puts "Inspect the Wave window in Vivado for the full testbench trace."

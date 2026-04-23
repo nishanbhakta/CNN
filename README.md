@@ -133,12 +133,22 @@ If you used a custom output directory, pass that directory instead of `generated
 The Vivado script:
 - opens or creates a saved Vivado simulation project under `vivado_build/`
 - points `cnn_accelerator_tb` at your generated `generated_windows.vh`
+- sets `nexys_a7_generated_image_top` as the synthesis top so generated windows stay internal and the implementation run targets real Nexys A7 pins
 - enables `USE_GENERATED_IMAGE_DATA`
 - launches behavioral simulation
 - adds common top-level and DUT waves
 - writes `output.csv` and `output_trace.csv` into the generated-data folder
 - runs the Python comparison helper to produce `output_comparison.csv`
 - keeps the waveform open in Vivado so you can inspect the hardware trace
+
+If you run synthesis or implementation from that project, Vivado now targets a board-level Nexys A7 wrapper around the generated-image runner rather than the raw `cnn_accelerator` DUT.
+
+Generated-image board controls:
+- `SW[0]=0`, then press `BTNU` to start a fresh run across all generated windows
+- `SW[0]=1`, then press `BTNU` to advance to the next stored 16-bit output sample
+- `BTNC` resets the design
+- `LED[15:0]` show the currently selected output in signed 16-bit two's-complement form
+- the seven-segment display shows the current value in signed base-10 decimal
 
 ## Parameters
 
