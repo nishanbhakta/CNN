@@ -1,7 +1,7 @@
 /*
-  Simple synchronous FIFO with single-clock read/write ports.
-  - Combinational read at current head (dout)
-  - Supports simultaneous push and pop
+    Simple synchronous FIFO with single-clock read/write ports.
+    - Presents the current head entry on dout each cycle.
+    - Supports simultaneous push and pop operations.
 */
 
 module sync_fifo #(
