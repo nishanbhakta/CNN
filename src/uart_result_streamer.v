@@ -2,8 +2,8 @@
   Streams the CNN result as ASCII hex over UART:
   <HEX_DIGITS>\r\n
 
-  RESULT_WIDTH defaults to 32 for the existing accelerator flow, but the
-  module can also stream 16-bit generated-image results for board playback.
+    RESULT_WIDTH defaults to 32 for the existing accelerator flow, but the
+    module can stream 16-bit generated-image results for board playback too.
 */
 
 module uart_result_streamer #(
