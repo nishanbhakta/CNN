@@ -27,6 +27,7 @@ module cnn_accelerator #(
 
     localparam integer GROUP_SIZE = (NUM_INPUTS + PIPELINE_LANES - 1) / PIPELINE_LANES;
 
+    // Multiplier farm outputs plus the controller handshake signals.
     wire [NUM_INPUTS-1:0] mult_done_bus;
     wire signed [2*WIDTH-1:0] mult_product [0:NUM_INPUTS-1];
     wire signed [ACC_WIDTH-1:0] mult_product_ext [0:NUM_INPUTS-1];
@@ -39,6 +40,7 @@ module cnn_accelerator #(
     wire [3:0] controller_state;
     wire all_mult_done = &mult_done_bus;
 
+    // Pipeline registers for the reduction tree and final output.
     reg signed [ACC_WIDTH-1:0] stage1_products [0:NUM_INPUTS-1];
     reg signed [ACC_WIDTH-1:0] stage2_partial [0:PIPELINE_LANES-1];
     reg signed [ACC_WIDTH-1:0] stage3_sum;
@@ -57,6 +59,7 @@ module cnn_accelerator #(
     integer lane_idx;
     integer reg_idx;
 
+    // Controller generates the staged start/enable pulses for the datapath.
     controller ctrl_inst (
         .clk(clk),
         .rst(rst),
@@ -73,6 +76,7 @@ module cnn_accelerator #(
         .state(controller_state)
     );
 
+    // Launch one multiplier per patch element.
     genvar mult_idx;
     generate
         for (mult_idx = 0; mult_idx < NUM_INPUTS; mult_idx = mult_idx + 1) begin : gen_parallel_mult
@@ -92,6 +96,7 @@ module cnn_accelerator #(
         end
     endgenerate
 
+    // Exact divide-by-9 stage between the reduction tree and the final divider.
     divide_by_9 #(.WIDTH(ACC_WIDTH)) div9_inst (
         .clk(clk),
         .rst(rst),
@@ -105,6 +110,7 @@ module cnn_accelerator #(
         (ACC_WIDTH - WIDTH){scale_factor[WIDTH-1]}
     }, scale_factor};
 
+    // Wide signed divider that applies the external scale factor.
     divider #(.WIDTH(ACC_WIDTH)) div_inst (
         .clk(clk),
         .rst(rst),
@@ -117,6 +123,7 @@ module cnn_accelerator #(
     );
 
     always @(*) begin
+        // Stage 2 groups products into PIPELINE_LANES partial sums.
         for (group_idx = 0; group_idx < PIPELINE_LANES; group_idx = group_idx + 1) begin
             partial_sum_comb[group_idx] = {ACC_WIDTH{1'b0}};
             for (
@@ -128,6 +135,7 @@ module cnn_accelerator #(
             end
         end
 
+        // Stage 3 collapses the partial sums into one accumulator value.
         total_sum_comb = {ACC_WIDTH{1'b0}};
         for (group_idx = 0; group_idx < PIPELINE_LANES; group_idx = group_idx + 1) begin
             total_sum_comb = total_sum_comb + stage2_partial[group_idx];
@@ -148,12 +156,14 @@ module cnn_accelerator #(
             end
         end else begin
             if (all_mult_done) begin
+                // Capture the sign-extended multiplier outputs together.
                 for (reg_idx = 0; reg_idx < NUM_INPUTS; reg_idx = reg_idx + 1) begin
                     stage1_products[reg_idx] <= mult_product_ext[reg_idx];
                 end
             end
 
             if (stage2_en) begin
+                // Register the grouped partial sums for the next reduction stage.
                 for (reg_idx = 0; reg_idx < PIPELINE_LANES; reg_idx = reg_idx + 1) begin
                     stage2_partial[reg_idx] <= partial_sum_comb[reg_idx];
                 end
@@ -164,6 +174,7 @@ module cnn_accelerator #(
             end
 
             if (div_done) begin
+                // Truncate the final accumulator-width quotient to the output port width.
                 result_reg <= final_result[WIDTH-1:0];
             end
         end

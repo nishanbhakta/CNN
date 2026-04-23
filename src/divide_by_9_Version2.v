@@ -1,8 +1,10 @@
 /*
-    Signed divide-by-9 using reciprocal multiply with bounded correction.
-    - Captures dividend on start.
-    - Computes quotient from reciprocal estimate and exacts it with small corrections.
-    - done pulses high one cycle after start.
+    Signed divide-by-9 block using reciprocal multiply plus bounded correction.
+    - Captures the dividend when `start` is asserted.
+    - Forms a quotient estimate from a reciprocal multiply and refines it with
+      small correction steps so the final result is exact.
+    - Presents the quotient after the 4-stage pipeline completes and pulses
+      `done` for one cycle with that output.
  */
 
 module divide_by_9 #(

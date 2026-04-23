@@ -1,5 +1,6 @@
 /*
-  Quick testbench to verify frontend accelerator outputs (divide-by-9 stage only)
+    Compact testbench to verify front-end accelerator outputs (divide-by-9 stage only).
+    Validates the MAC pipeline and initial division stage.
 */
 
 `timescale 1ns / 1ps
@@ -38,6 +39,7 @@ module cnn_accel_frontend_tb;
         .div9_scale_factor(div9_scale_factor_out)
     );
 
+    // Free-running simulation clock.
     always #5 clk = ~clk;
 
     initial begin
@@ -49,7 +51,7 @@ module cnn_accel_frontend_tb;
         rst = 0;
         repeat (5) @(posedge clk);
         
-        // Test case: All ones
+        // Simple smoke test with unit-valued inputs and kernel coefficients.
         $display("Test: All ones");
         begin
             integer i;
@@ -63,7 +65,7 @@ module cnn_accel_frontend_tb;
             @(posedge clk);
             start = 0;
             
-            // Wait for output (should be ~7 cycles)
+            // Wait long enough for the multiplier fanout and div9 pipeline to complete.
             repeat (20) @(posedge clk);
             
             if (div9_done_out) begin

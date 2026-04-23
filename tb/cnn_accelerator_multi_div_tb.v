@@ -1,6 +1,8 @@
 /*
-  Testbench for CNN accelerator with 5 parallel dividers
-  Tests that results are correct and performance improves
+  Testbench for the CNN accelerator variant that uses five parallel dividers.
+  This variant improves throughput by parallelizing division operations.
+  The stimulus checks functional correctness across a few representative cases
+  while exercising the divider scheduling path.
 */
 
 `timescale 1ns / 1ps
@@ -37,10 +39,10 @@ module cnn_accelerator_multi_div_tb #(
         .done(done)
     );
 
-    // Clock generation
+    // Free-running simulation clock generator.
     always #5 clk = ~clk;
 
-    // Helper function to compute expected output
+    // Software reference for (sum / 9) / scale_factor.
     function longint compute_reference_ll;
         input longint sum_prod;
         longint result_ll;
@@ -50,7 +52,7 @@ module cnn_accelerator_multi_div_tb #(
         end
     endfunction
 
-    // Test execution
+    // Apply reset, run a few scenarios, and compare against the reference model.
     initial begin
         clk = 1'b0;
         rst = 1'b1;
@@ -60,7 +62,7 @@ module cnn_accelerator_multi_div_tb #(
         rst = 1'b0;
         repeat (5) @(posedge clk);
         
-        // Test case 1: All ones
+        // Test case 1: uniform inputs and kernel values.
         $display("Test 1: All ones");
         begin
             integer i;
@@ -79,7 +81,7 @@ module cnn_accelerator_multi_div_tb #(
             @(posedge clk);
             start = 1'b0;
             
-            // Wait for done (~200 cycles should be more than enough)
+            // Allow enough time for the front end and one divider lane to finish.
             repeat (200) @(posedge clk);
             
             expected = sum_prod / 9 / 1;
@@ -92,7 +94,7 @@ module cnn_accelerator_multi_div_tb #(
         
         repeat (5) @(posedge clk);
         
-        // Test case 2: Sequential launches (5 patches)
+        // Test case 2: launch five patches back-to-back to exercise scheduling.
         $display("\nTest 2: Sequential launches (5 patches)");
         begin
             integer i, j;
@@ -101,7 +103,7 @@ module cnn_accelerator_multi_div_tb #(
             reg signed [WIDTH-1:0] results [0:4];
             
             for (i = 0; i < 5; i = i + 1) begin
-                // Each patch has different scale factor
+                // Each patch uses a different value so the expected result changes.
                 sum_prod = 0;
                 for (j = 0; j < NUM_INPUTS; j = j + 1) begin
                     input_data[j] = (i + 1);
@@ -114,7 +116,7 @@ module cnn_accelerator_multi_div_tb #(
                 @(posedge clk);
                 start = 1'b0;
                 
-                // Wait for result (~200 cycles should be more than enough)
+                // Give the queued work time to drain through the divider bank.
                 repeat (200) @(posedge clk);
                 
                 results[i] = result;
@@ -128,7 +130,7 @@ module cnn_accelerator_multi_div_tb #(
         
         repeat (5) @(posedge clk);
         
-        // Test case 3: Large values
+        // Test case 3: large positive values near the 32-bit limit.
         $display("\nTest 3: Large values");
         begin
             integer i;
@@ -147,7 +149,7 @@ module cnn_accelerator_multi_div_tb #(
             @(posedge clk);
             start = 1'b0;
             
-            // Wait for result (~200 cycles should be more than enough)
+            // Allow enough time for the multi-stage datapath to complete.
             repeat (200) @(posedge clk);
             
             expected = sum_prod / 9 / 1;

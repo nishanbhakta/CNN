@@ -19,6 +19,7 @@ module mac #(
     output reg done
 );
 
+    // One-cycle pipeline registers for the product and its control bits.
     reg signed [2*WIDTH-1:0] product_pipe;
     reg valid_pipe;
     reg enable_pipe;
@@ -31,6 +32,7 @@ module mac #(
             valid_pipe <= 1'b0;
             enable_pipe <= 1'b0;
         end else begin
+            // `done` follows the pipelined multiply result by one clock.
             done <= valid_pipe;
 
             if (valid_pipe && enable_pipe) begin
@@ -38,6 +40,7 @@ module mac #(
             end
 
             if (start) begin
+                // Capture the current signed product for accumulation next cycle.
                 product_pipe <= x * h;
             end
 
@@ -64,6 +67,7 @@ module mac_accumulator #(
         if (rst || reset_acc) begin
             result <= {ACC_WIDTH{1'b0}};
         end else if (enable) begin
+            // Reuse the same sign-extension pattern as the standalone MAC block.
             result <= result + {{(ACC_WIDTH-2*WIDTH){product_in[2*WIDTH-1]}}, product_in};
         end
     end

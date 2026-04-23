@@ -1,5 +1,6 @@
 `timescale 1ns/1ps
 
+// Multiply-Accumulate unit testbench
 module mac_tb ();
 
     reg clk;
