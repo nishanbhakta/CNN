@@ -30,6 +30,7 @@ module multiplier #(
             product_pipe <= {2*WIDTH{1'b0}};
             valid_pipe <= 1'b0;
         end else begin
+            // Present the stored product and matching completion pulse together.
             done <= valid_pipe;
 
             if (valid_pipe) begin
@@ -37,6 +38,7 @@ module multiplier #(
             end
 
             if (start) begin
+                // Map directly to a signed hardware multiply.
                 product_pipe <= a * b;
             end
 
