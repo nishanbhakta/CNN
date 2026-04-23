@@ -1,5 +1,5 @@
 /*
-    Quick testbench to verify front-end accelerator outputs (divide-by-9 stage only).
+    Compact testbench to verify front-end accelerator outputs (divide-by-9 stage only).
 */
 
 `timescale 1ns / 1ps
