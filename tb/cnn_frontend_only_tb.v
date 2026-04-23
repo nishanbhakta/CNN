@@ -1,5 +1,5 @@
 /*
-  Quick testbench to verify frontend accelerator outputs (divide-by-9 stage only)
+    Quick testbench to verify front-end accelerator outputs (divide-by-9 stage only).
 */
 
 `timescale 1ns / 1ps
@@ -49,7 +49,7 @@ module cnn_accel_frontend_tb;
         rst = 0;
         repeat (5) @(posedge clk);
         
-        // Test case: All ones
+        // Directed case: all-ones vectors for a simple baseline check.
         $display("Test: All ones");
         begin
             integer i;
@@ -63,7 +63,7 @@ module cnn_accel_frontend_tb;
             @(posedge clk);
             start = 0;
             
-            // Wait for output (should be ~7 cycles)
+            // Wait for output from the pipelined front-end path (about 7 cycles).
             repeat (20) @(posedge clk);
             
             if (div9_done_out) begin
