@@ -41,6 +41,7 @@ module cnn_accel_original_tb;
         .div9_scale_factor_out()
     );
 
+    // Free-running simulation clock.
     always #5 clk = ~clk;
 
     initial begin
@@ -52,7 +53,7 @@ module cnn_accel_original_tb;
         rst = 0;
         repeat (5) @(posedge clk);
         
-        // Directed case: all-ones input/kernel should produce a deterministic baseline result.
+        // Sanity check that the legacy top-level path still produces one output.
         $display("Test: All ones with INCLUDE_FINAL_DIVIDER=1 (original behavior)");
         begin
             integer i;
@@ -66,7 +67,7 @@ module cnn_accel_original_tb;
             @(posedge clk);
             start = 0;
             
-            // Wait long enough for the full pipelined datapath to complete.
+            // Allow enough time for the full datapath, including the final divider.
             repeat (120) @(posedge clk);
             
             if (done) begin
