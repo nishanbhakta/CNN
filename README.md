@@ -51,6 +51,13 @@ CNN/
 
 The assignment-oriented design discussion, Nexys A7 resource summary, and updated area/performance tables are in [docs/nexys_a7_design_report.md](docs/nexys_a7_design_report.md). Current Vivado arithmetic-core reports are under [vivado_build/arithmetic_reports](vivado_build/arithmetic_reports).
 
+## Prerequisites
+
+- Install Icarus Verilog so both `iverilog` and `vvp` are available. On Windows, the batch scripts first check `PATH` and then fall back to `C:\iverilog\bin`.
+- Install Python 3 if you want to use the image-driven preprocessing flow.
+- Install the Python dependency for image preprocessing with `python -m pip install -r requirements.txt`
+- Vivado is only required for the board build and Vivado waveform flow.
+
 ## Simulation
 
 ### Windows
@@ -92,7 +99,7 @@ make test_all
 You can preprocess a real image into 3x3 windows and run the generated-data simulation in one command:
 
 ```powershell
-py -3 scripts\run_image_sim.py path\to\image.png --resize 28x28 --kernel "1,0,-1,1,0,-1,1,0,-1" --scale-factor 1
+python scripts\run_image_sim.py path\to\image.png --resize 28x28 --kernel "1,0,-1,1,0,-1,1,0,-1" --scale-factor 1
 ```
 
 This generates:
@@ -119,7 +126,7 @@ Useful options for the image flow:
 If you want the Python step to only prepare the files for Vivado, run:
 
 ```powershell
-py -3 scripts\run_image_sim.py path\to\image.png --resize 28x28 --prepare-only
+python scripts\run_image_sim.py path\to\image.png --resize 28x28 --prepare-only
 ```
 
 Then open Vivado and run the generated-image testbench:

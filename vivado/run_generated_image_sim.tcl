@@ -49,10 +49,6 @@ proc path_for_define {path_value} {
 }
 
 proc python_command {} {
-    if {[auto_execok py] ne ""} {
-        return [list py -3]
-    }
-
     foreach candidate {python python3} {
         set executable [auto_execok $candidate]
         if {$executable ne ""} {

@@ -1,231 +1,323 @@
 @echo off
+setlocal EnableExtensions
 REM CNN Accelerator Simulation Script for Windows
 REM Usage: sim.bat [test_name]
 REM Available tests: cnn, cnn_csv, uart, multiplier, mac, divider, div9, all
 
-set SRC_DIR=src
-set TB_DIR=tb
-set OUT_DIR=sim_output
-set VCD_DIR=sim_output\waveforms
+set "ROOT_DIR=%~dp0"
+set "SRC_DIR=%ROOT_DIR%src"
+set "TB_DIR=%ROOT_DIR%tb"
+set "OUT_DIR=%ROOT_DIR%sim_output"
+set "VCD_DIR=%OUT_DIR%\waveforms"
+set "IVERILOG=iverilog"
+set "VVP=vvp"
+
+call :resolve_tool IVERILOG iverilog "C:\iverilog\bin\iverilog.exe"
+if errorlevel 1 exit /b 1
+
+call :resolve_tool VVP vvp "C:\iverilog\bin\vvp.exe"
+if errorlevel 1 exit /b 1
 
 REM Create output directories
-if not exist sim_output mkdir sim_output
-if not exist sim_output\waveforms mkdir sim_output\waveforms
+if not exist "%OUT_DIR%" mkdir "%OUT_DIR%"
+if not exist "%VCD_DIR%" mkdir "%VCD_DIR%"
 
 REM Parse command line argument
-set TEST=%1
-if "%TEST%"=="" set TEST=cnn
+set "TEST=%~1"
+if "%TEST%"=="" set "TEST=cnn"
 
 echo ========================================
 echo CNN Accelerator Simulation
 echo ========================================
 
-if /I "%TEST%"=="cnn" goto run_cnn
-if /I "%TEST%"=="cnn_csv" goto run_cnn_csv
-if /I "%TEST%"=="uart" goto run_uart
-if /I "%TEST%"=="multiplier" goto run_multiplier
-if /I "%TEST%"=="mac" goto run_mac
-if /I "%TEST%"=="divider" goto run_divider
-if /I "%TEST%"=="div9" goto run_div9
-if /I "%TEST%"=="all" goto run_all
-if /I "%TEST%"=="clean" goto clean
-if /I "%TEST%"=="help" goto help
+if /I "%TEST%"=="cnn" (
+    call :run_cnn
+    exit /b %ERRORLEVEL%
+)
+if /I "%TEST%"=="cnn_csv" (
+    call :run_cnn_csv
+    exit /b %ERRORLEVEL%
+)
+if /I "%TEST%"=="uart" (
+    call :run_uart
+    exit /b %ERRORLEVEL%
+)
+if /I "%TEST%"=="multiplier" (
+    call :run_multiplier
+    exit /b %ERRORLEVEL%
+)
+if /I "%TEST%"=="mac" (
+    call :run_mac
+    exit /b %ERRORLEVEL%
+)
+if /I "%TEST%"=="divider" (
+    call :run_divider
+    exit /b %ERRORLEVEL%
+)
+if /I "%TEST%"=="div9" (
+    call :run_div9
+    exit /b %ERRORLEVEL%
+)
+if /I "%TEST%"=="all" (
+    call :run_all
+    exit /b %ERRORLEVEL%
+)
+if /I "%TEST%"=="clean" (
+    call :clean
+    exit /b %ERRORLEVEL%
+)
+if /I "%TEST%"=="help" (
+    call :help
+    exit /b %ERRORLEVEL%
+)
 
 echo Unknown test: %TEST%
-goto help
+call :help
+exit /b 1
 
 :run_cnn
 echo.
 echo === Compiling CNN Accelerator ===
-iverilog -g2012 -o %OUT_DIR%\cnn_accelerator.vvp ^
-    %SRC_DIR%\multiplier.v ^
-    %SRC_DIR%\MAC.v ^
-    %SRC_DIR%\divider_Version2.v ^
-    %SRC_DIR%\divide_by_9_Version2.v ^
-    %SRC_DIR%\controller_Version2.v ^
-    %SRC_DIR%\cnn_accelerator_Version2.v ^
-    %TB_DIR%\cnn_accelerator_tb_Version2.v
+"%IVERILOG%" -g2012 -o "%OUT_DIR%\cnn_accelerator.vvp" ^
+    "%SRC_DIR%\multiplier.v" ^
+    "%SRC_DIR%\MAC.v" ^
+    "%SRC_DIR%\divider_Version2.v" ^
+    "%SRC_DIR%\divide_by_9_Version2.v" ^
+    "%SRC_DIR%\controller_Version2.v" ^
+    "%SRC_DIR%\cnn_accelerator_Version2.v" ^
+    "%TB_DIR%\cnn_accelerator_tb_Version2.v"
 
-if %ERRORLEVEL% NEQ 0 (
+if errorlevel 1 (
     echo Compilation failed!
     exit /b 1
 )
 
 echo === Running CNN Accelerator Simulation ===
-cd %OUT_DIR%
-vvp cnn_accelerator.vvp
-cd ..
+pushd "%OUT_DIR%" >nul
+"%VVP%" "cnn_accelerator.vvp"
+set "STATUS=%ERRORLEVEL%"
+popd >nul
 
-if exist "cnn_accelerator_tb.vcd" move /Y "cnn_accelerator_tb.vcd" "%VCD_DIR%\"
-if exist "%OUT_DIR%\cnn_accelerator_tb.vcd" move /Y "%OUT_DIR%\cnn_accelerator_tb.vcd" "%VCD_DIR%\"
+if not "%STATUS%"=="0" (
+    echo Simulation failed!
+    exit /b %STATUS%
+)
+
+if exist "%ROOT_DIR%cnn_accelerator_tb.vcd" move /Y "%ROOT_DIR%cnn_accelerator_tb.vcd" "%VCD_DIR%\" >nul
+if exist "%OUT_DIR%\cnn_accelerator_tb.vcd" move /Y "%OUT_DIR%\cnn_accelerator_tb.vcd" "%VCD_DIR%\" >nul
 
 echo === Simulation Complete ===
 echo Waveform saved to %VCD_DIR%\cnn_accelerator_tb.vcd
-goto end
+exit /b 0
 
 :run_cnn_csv
 echo.
 echo === Compiling CNN Accelerator CSV Testbench ===
-iverilog -g2012 -DUSE_CSV_TEST_DATA -o %OUT_DIR%\cnn_csv.vvp ^
-    %SRC_DIR%\multiplier.v ^
-    %SRC_DIR%\MAC.v ^
-    %SRC_DIR%\divider_Version2.v ^
-    %SRC_DIR%\divide_by_9_Version2.v ^
-    %SRC_DIR%\controller_Version2.v ^
-    %SRC_DIR%\cnn_accelerator_Version2.v ^
-    %TB_DIR%\cnn_accelerator_tb_Version2.v
+"%IVERILOG%" -g2012 -DUSE_CSV_TEST_DATA -o "%OUT_DIR%\cnn_csv.vvp" ^
+    "%SRC_DIR%\multiplier.v" ^
+    "%SRC_DIR%\MAC.v" ^
+    "%SRC_DIR%\divider_Version2.v" ^
+    "%SRC_DIR%\divide_by_9_Version2.v" ^
+    "%SRC_DIR%\controller_Version2.v" ^
+    "%SRC_DIR%\cnn_accelerator_Version2.v" ^
+    "%TB_DIR%\cnn_accelerator_tb_Version2.v"
 
-if %ERRORLEVEL% NEQ 0 (
+if errorlevel 1 (
     echo Compilation failed!
     exit /b 1
 )
 
 echo === Running CNN Accelerator CSV Simulation ===
-vvp %OUT_DIR%\cnn_csv.vvp
+pushd "%ROOT_DIR%" >nul
+"%VVP%" "%OUT_DIR%\cnn_csv.vvp"
+set "STATUS=%ERRORLEVEL%"
+popd >nul
 
-if exist "cnn_accelerator_tb.vcd" move /Y "cnn_accelerator_tb.vcd" "%VCD_DIR%\cnn_accelerator_csv_tb.vcd"
-if exist "%OUT_DIR%\cnn_accelerator_tb.vcd" move /Y "%OUT_DIR%\cnn_accelerator_tb.vcd" "%VCD_DIR%\cnn_accelerator_csv_tb.vcd"
+if not "%STATUS%"=="0" (
+    echo Simulation failed!
+    exit /b %STATUS%
+)
+
+if exist "%ROOT_DIR%cnn_accelerator_tb.vcd" move /Y "%ROOT_DIR%cnn_accelerator_tb.vcd" "%VCD_DIR%\cnn_accelerator_csv_tb.vcd" >nul
+if exist "%OUT_DIR%\cnn_accelerator_tb.vcd" move /Y "%OUT_DIR%\cnn_accelerator_tb.vcd" "%VCD_DIR%\cnn_accelerator_csv_tb.vcd" >nul
 
 echo === Simulation Complete ===
 echo Waveform saved to %VCD_DIR%\cnn_accelerator_csv_tb.vcd
-goto end
+exit /b 0
 
 :run_uart
 echo.
 echo === Compiling UART Result Streamer ===
-iverilog -g2012 -o %OUT_DIR%\uart_result_streamer.vvp ^
-    %SRC_DIR%\uart_tx.v ^
-    %SRC_DIR%\uart_result_streamer.v ^
-    %TB_DIR%\uart_result_streamer_tb.v
+"%IVERILOG%" -g2012 -o "%OUT_DIR%\uart_result_streamer.vvp" ^
+    "%SRC_DIR%\uart_tx.v" ^
+    "%SRC_DIR%\uart_result_streamer.v" ^
+    "%TB_DIR%\uart_result_streamer_tb.v"
 
-if %ERRORLEVEL% NEQ 0 (
+if errorlevel 1 (
     echo Compilation failed!
     exit /b 1
 )
 
 echo === Running UART Result Streamer Simulation ===
-cd %OUT_DIR%
-vvp uart_result_streamer.vvp
-cd ..
+pushd "%OUT_DIR%" >nul
+"%VVP%" "uart_result_streamer.vvp"
+set "STATUS=%ERRORLEVEL%"
+popd >nul
 
-if exist "uart_result_streamer_tb.vcd" move /Y "uart_result_streamer_tb.vcd" "%VCD_DIR%\"
-if exist "%OUT_DIR%\uart_result_streamer_tb.vcd" move /Y "%OUT_DIR%\uart_result_streamer_tb.vcd" "%VCD_DIR%\"
+if not "%STATUS%"=="0" (
+    echo Simulation failed!
+    exit /b %STATUS%
+)
+
+if exist "%ROOT_DIR%uart_result_streamer_tb.vcd" move /Y "%ROOT_DIR%uart_result_streamer_tb.vcd" "%VCD_DIR%\" >nul
+if exist "%OUT_DIR%\uart_result_streamer_tb.vcd" move /Y "%OUT_DIR%\uart_result_streamer_tb.vcd" "%VCD_DIR%\" >nul
 
 echo === Simulation Complete ===
-goto end
+exit /b 0
 
 :run_multiplier
 echo.
 echo === Compiling Multiplier ===
-iverilog -g2012 -o %OUT_DIR%\multiplier.vvp ^
-    %SRC_DIR%\multiplier.v ^
-    %TB_DIR%\multiplier_tb_Version2.v
+"%IVERILOG%" -g2012 -o "%OUT_DIR%\multiplier.vvp" ^
+    "%SRC_DIR%\multiplier.v" ^
+    "%TB_DIR%\multiplier_tb_Version2.v"
 
-if %ERRORLEVEL% NEQ 0 (
+if errorlevel 1 (
     echo Compilation failed!
     exit /b 1
 )
 
 echo === Running Multiplier Simulation ===
-cd %OUT_DIR%
-vvp multiplier.vvp
-cd ..
+pushd "%OUT_DIR%" >nul
+"%VVP%" "multiplier.vvp"
+set "STATUS=%ERRORLEVEL%"
+popd >nul
 
-if exist "multiplier_tb.vcd" move /Y "multiplier_tb.vcd" "%VCD_DIR%\"
-if exist "%OUT_DIR%\multiplier_tb.vcd" move /Y "%OUT_DIR%\multiplier_tb.vcd" "%VCD_DIR%\"
+if not "%STATUS%"=="0" (
+    echo Simulation failed!
+    exit /b %STATUS%
+)
+
+if exist "%ROOT_DIR%multiplier_tb.vcd" move /Y "%ROOT_DIR%multiplier_tb.vcd" "%VCD_DIR%\" >nul
+if exist "%OUT_DIR%\multiplier_tb.vcd" move /Y "%OUT_DIR%\multiplier_tb.vcd" "%VCD_DIR%\" >nul
 
 echo === Simulation Complete ===
-goto end
+exit /b 0
 
 :run_mac
 echo.
 echo === Compiling MAC ===
-iverilog -g2012 -o %OUT_DIR%\mac.vvp ^
-    %SRC_DIR%\multiplier.v ^
-    %SRC_DIR%\MAC.v ^
-    %TB_DIR%\mac_tb_Version2.v
+"%IVERILOG%" -g2012 -o "%OUT_DIR%\mac.vvp" ^
+    "%SRC_DIR%\multiplier.v" ^
+    "%SRC_DIR%\MAC.v" ^
+    "%TB_DIR%\mac_tb_Version2.v"
 
-if %ERRORLEVEL% NEQ 0 (
+if errorlevel 1 (
     echo Compilation failed!
     exit /b 1
 )
 
 echo === Running MAC Simulation ===
-cd %OUT_DIR%
-vvp mac.vvp
-cd ..
+pushd "%OUT_DIR%" >nul
+"%VVP%" "mac.vvp"
+set "STATUS=%ERRORLEVEL%"
+popd >nul
 
-if exist "mac_tb.vcd" move /Y "mac_tb.vcd" "%VCD_DIR%\"
-if exist "%OUT_DIR%\mac_tb.vcd" move /Y "%OUT_DIR%\mac_tb.vcd" "%VCD_DIR%\"
+if not "%STATUS%"=="0" (
+    echo Simulation failed!
+    exit /b %STATUS%
+)
+
+if exist "%ROOT_DIR%mac_tb.vcd" move /Y "%ROOT_DIR%mac_tb.vcd" "%VCD_DIR%\" >nul
+if exist "%OUT_DIR%\mac_tb.vcd" move /Y "%OUT_DIR%\mac_tb.vcd" "%VCD_DIR%\" >nul
 
 echo === Simulation Complete ===
-goto end
+exit /b 0
 
 :run_divider
 echo.
 echo === Compiling Divider ===
-iverilog -g2012 -o %OUT_DIR%\divider.vvp ^
-    %SRC_DIR%\divider_Version2.v ^
-    %TB_DIR%\divider_tb_Version2.v
+"%IVERILOG%" -g2012 -o "%OUT_DIR%\divider.vvp" ^
+    "%SRC_DIR%\divider_Version2.v" ^
+    "%TB_DIR%\divider_tb_Version2.v"
 
-if %ERRORLEVEL% NEQ 0 (
+if errorlevel 1 (
     echo Compilation failed!
     exit /b 1
 )
 
 echo === Running Divider Simulation ===
-cd %OUT_DIR%
-vvp divider.vvp
-cd ..
+pushd "%OUT_DIR%" >nul
+"%VVP%" "divider.vvp"
+set "STATUS=%ERRORLEVEL%"
+popd >nul
 
-if exist "divider_tb.vcd" move /Y "divider_tb.vcd" "%VCD_DIR%\"
-if exist "%OUT_DIR%\divider_tb.vcd" move /Y "%OUT_DIR%\divider_tb.vcd" "%VCD_DIR%\"
+if not "%STATUS%"=="0" (
+    echo Simulation failed!
+    exit /b %STATUS%
+)
+
+if exist "%ROOT_DIR%divider_tb.vcd" move /Y "%ROOT_DIR%divider_tb.vcd" "%VCD_DIR%\" >nul
+if exist "%OUT_DIR%\divider_tb.vcd" move /Y "%OUT_DIR%\divider_tb.vcd" "%VCD_DIR%\" >nul
 
 echo === Simulation Complete ===
-goto end
+exit /b 0
 
 :run_div9
 echo.
 echo === Compiling Divide-by-9 ===
-iverilog -g2012 -o %OUT_DIR%\div9.vvp ^
-    %SRC_DIR%\divide_by_9_Version2.v ^
-    %TB_DIR%\divide_by_9_Version2.v
+"%IVERILOG%" -g2012 -o "%OUT_DIR%\div9.vvp" ^
+    "%SRC_DIR%\divide_by_9_Version2.v" ^
+    "%TB_DIR%\divide_by_9_Version2.v"
 
-if %ERRORLEVEL% NEQ 0 (
+if errorlevel 1 (
     echo Compilation failed!
     exit /b 1
 )
 
 echo === Running Divide-by-9 Simulation ===
-cd %OUT_DIR%
-vvp div9.vvp
-cd ..
+pushd "%OUT_DIR%" >nul
+"%VVP%" "div9.vvp"
+set "STATUS=%ERRORLEVEL%"
+popd >nul
 
-if exist "divide_by_9_tb.vcd" move /Y "divide_by_9_tb.vcd" "%VCD_DIR%\"
-if exist "%OUT_DIR%\divide_by_9_tb.vcd" move /Y "%OUT_DIR%\divide_by_9_tb.vcd" "%VCD_DIR%\"
+if not "%STATUS%"=="0" (
+    echo Simulation failed!
+    exit /b %STATUS%
+)
+
+if exist "%ROOT_DIR%divide_by_9_tb.vcd" move /Y "%ROOT_DIR%divide_by_9_tb.vcd" "%VCD_DIR%\" >nul
+if exist "%OUT_DIR%\divide_by_9_tb.vcd" move /Y "%OUT_DIR%\divide_by_9_tb.vcd" "%VCD_DIR%\" >nul
 
 echo === Simulation Complete ===
-goto end
+exit /b 0
 
 :run_all
 call :run_multiplier
+if errorlevel 1 exit /b 1
 call :run_mac
+if errorlevel 1 exit /b 1
 call :run_divider
+if errorlevel 1 exit /b 1
 call :run_div9
+if errorlevel 1 exit /b 1
 call :run_uart
+if errorlevel 1 exit /b 1
 call :run_cnn
+if errorlevel 1 exit /b 1
 call :run_cnn_csv
+if errorlevel 1 exit /b 1
 echo.
 echo === All Tests Complete ===
-goto end
+exit /b 0
 
 :clean
 echo Cleaning simulation outputs...
 if exist "%OUT_DIR%" rd /s /q "%OUT_DIR%"
-if exist "*.vcd" del /q "*.vcd"
-if exist "*.vvp" del /q "*.vvp"
+del /q "%ROOT_DIR%*.vcd" 2>nul
+del /q "%ROOT_DIR%*.vvp" 2>nul
 echo === Cleaned ===
-goto end
+exit /b 0
 
 :help
 echo.
@@ -250,6 +342,21 @@ echo   sim.bat              (runs CNN accelerator)
 echo   sim.bat cnn_csv      (runs the CSV-driven CNN testbench)
 echo   sim.bat multiplier   (runs multiplier test)
 echo   sim.bat all          (runs all tests)
-goto end
+exit /b 0
 
-:end
+:resolve_tool
+where "%~2" >nul 2>nul
+if not errorlevel 1 (
+    set "%~1=%~2"
+    exit /b 0
+)
+
+if exist "%~3" (
+    set "%~1=%~3"
+    exit /b 0
+)
+
+echo ERROR: Could not find %~2.
+echo Install Icarus Verilog and make sure both iverilog and vvp are in PATH.
+echo As a fallback, these scripts also accept the default install path C:\iverilog\bin.
+exit /b 1

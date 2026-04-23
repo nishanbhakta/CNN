@@ -21,24 +21,28 @@ module sync_fifo #(
     localparam ADDR_WIDTH = (DEPTH <= 2) ? 1 : $clog2(DEPTH);
     localparam COUNT_WIDTH = $clog2(DEPTH + 1);
 
-    reg [WIDTH-1:0] mem [0:DEPTH-1];
+    (* ram_style = "block" *) reg [WIDTH-1:0] mem [0:DEPTH-1];
     reg [ADDR_WIDTH-1:0] wr_ptr;
     reg [ADDR_WIDTH-1:0] rd_ptr;
     reg [COUNT_WIDTH-1:0] count;
+    reg [WIDTH-1:0] dout_reg;
 
     wire do_write = wr_en && !full;
     wire do_read = rd_en && !empty;
 
     assign full = (count == DEPTH[COUNT_WIDTH-1:0]);
     assign empty = (count == {COUNT_WIDTH{1'b0}});
-    assign dout = mem[rd_ptr];
+    assign dout = dout_reg;
 
     always @(posedge clk) begin
         if (rst) begin
             wr_ptr <= {ADDR_WIDTH{1'b0}};
             rd_ptr <= {ADDR_WIDTH{1'b0}};
             count <= {COUNT_WIDTH{1'b0}};
+            dout_reg <= {WIDTH{1'b0}};
         end else begin
+            dout_reg <= mem[rd_ptr];
+
             if (do_write) begin
                 mem[wr_ptr] <= din;
                 if (wr_ptr == DEPTH - 1) begin

@@ -37,7 +37,7 @@ module cnn_generated_image_runner #(
 
     reg signed [WIDTH-1:0] input_data [0:NUM_INPUTS-1];
     reg signed [WIDTH-1:0] kernel [0:NUM_INPUTS-1];
-    reg signed [15:0] stored_outputs [0:GENERATED_NUM_WINDOWS-1];
+    (* ram_style = "block" *) reg signed [15:0] stored_outputs [0:GENERATED_NUM_WINDOWS-1];
     reg signed [WIDTH-1:0] scale_factor;
     reg accelerator_start;
     reg busy_reg;
