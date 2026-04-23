@@ -1,16 +1,18 @@
 /*
-  CNN Hardware Accelerator with 5 parallel dividers
-  
+  CNN hardware accelerator with five parallel final-stage dividers.
+
   Architecture:
-    [Multiplier] -> [Divide-by-9] -> [Buffer/FIFO] -> [5x Dividers in parallel]
-  
-  The front-end (multiplier + divide-by-9) processes patches sequentially,
-  feeding results into a buffer. Five dividers consume from the buffer in parallel,
-  reducing the total divider latency from 72*N cycles to ~72*N/5 cycles.
-  
-  Performance:
-    - Single copy: ~48.7k cycles for 676 patches (divider-bottlenecked)
-    - 5 dividers: ~11.1k cycles for 676 patches (~4.4x speedup)
+    [Multiplier] -> [Divide-by-9] -> [FIFO] -> [5 parallel dividers]
+
+  The front end (multiply plus divide-by-9) still accepts work sequentially.
+  Each completed divide-by-9 result is queued in the FIFO, and the scheduler
+  dispatches queued work to the first free divider. This hides most of the
+  latency of the wide iterative divider by keeping several divider instances
+  busy at the same time.
+
+  Expected throughput:
+    - Single divider path: about 48.7k cycles for 676 patches
+    - Five-divider path: about 11.1k cycles for 676 patches
 */
 
 module cnn_accelerator_multi_div #(
@@ -32,12 +34,12 @@ module cnn_accelerator_multi_div #(
     output done
 );
 
-    // ============ Signals from frontend accelerator ============
+    // Outputs from the shared front end.
     wire fe_div9_done;
     wire signed [ACC_WIDTH-1:0] fe_div9_result;
     wire signed [WIDTH-1:0] fe_div9_scale_factor;
     
-    // ============ FIFO signals ============
+    // FIFO write and read control/data signals.
     wire fifo_wr_valid = fe_div9_done;
     wire fifo_wr_en;
     wire signed [ACC_WIDTH-1:0] fifo_wr_dividend;
@@ -48,7 +50,7 @@ module cnn_accelerator_multi_div #(
     wire signed [ACC_WIDTH-1:0] fifo_rd_dividend;
     wire signed [WIDTH-1:0] fifo_rd_scale_factor;
     
-    // ============ Divider array signals ============
+    // Signals for the bank of parallel final dividers.
     wire [NUM_DIVIDERS-1:0] div_start;
     wire [NUM_DIVIDERS-1:0] div_done_bus;
     wire signed [ACC_WIDTH-1:0] div_quotient [0:NUM_DIVIDERS-1];
@@ -57,13 +59,13 @@ module cnn_accelerator_multi_div #(
     reg signed [ACC_WIDTH-1:0] div_dividend [0:NUM_DIVIDERS-1];
     reg signed [WIDTH-1:0] div_scale_factor [0:NUM_DIVIDERS-1];
     
-    // ============ Result merging ============
+    // Result selection after any divider finishes.
     integer div_idx;
     wire any_div_done = |div_done_bus;
     reg signed [WIDTH-1:0] result_reg;
     reg output_valid_reg;
     
-    // Instantiate front-end accelerator (multiplier + divide-by-9 only)
+    // Front end produces the post-divide-by-9 value and matching scale factor.
     cnn_accelerator_frontend #(
         .WIDTH(WIDTH),
         .ACC_WIDTH(ACC_WIDTH),
@@ -80,8 +82,7 @@ module cnn_accelerator_multi_div #(
         .div9_scale_factor(fe_div9_scale_factor)
     );
     
-    // ============ FIFO buffer for div9 outputs ============
-    // Simple ring buffer FIFO
+    // FIFO that holds divide-by-9 outputs until a divider becomes available.
     reg signed [ACC_WIDTH-1:0] fifo_dividend [0:FIFO_DEPTH-1];
     reg signed [WIDTH-1:0] fifo_scale_factor [0:FIFO_DEPTH-1];
     reg [7:0] fifo_wr_ptr, fifo_rd_ptr;
@@ -117,11 +118,11 @@ module cnn_accelerator_multi_div #(
         end
     end
     
-    // ============ Divider instantiation and scheduling ============
+    // Divider array and scheduler.
     genvar d_idx;
     generate
         for (d_idx = 0; d_idx < NUM_DIVIDERS; d_idx = d_idx + 1) begin : gen_dividers
-            // Extend scale factor to ACC_WIDTH
+            // Sign-extend the scale factor to match the divider width.
             wire signed [ACC_WIDTH-1:0] scale_extended = {{
                 (ACC_WIDTH - WIDTH){div_scale_factor[d_idx][WIDTH-1]}
             }, div_scale_factor[d_idx]};
@@ -139,7 +140,7 @@ module cnn_accelerator_multi_div #(
         end
     endgenerate
     
-    // Divider scheduling logic
+    // Track which divider lanes are busy and load new work into free lanes.
     integer search_idx;
     reg [NUM_DIVIDERS-1:0] assign_mask_this_cycle;
     reg start_this_cycle;
@@ -152,14 +153,14 @@ module cnn_accelerator_multi_div #(
                 div_scale_factor[div_idx] <= {WIDTH{1'b0}};
             end
         end else begin
-            // Mark dividers as done
+            // Release any lane that finished this cycle.
             for (div_idx = 0; div_idx < NUM_DIVIDERS; div_idx = div_idx + 1) begin
                 if (div_done_bus[div_idx]) begin
                     div_busy[div_idx] <= 1'b0;
                 end
             end
             
-            // Load new work into assigned divider
+            // Load the selected FIFO entry into the divider chosen this cycle.
             for (div_idx = 0; div_idx < NUM_DIVIDERS; div_idx = div_idx + 1) begin
                 if (assign_mask_this_cycle[div_idx] && fifo_rd_en) begin
                     div_busy[div_idx] <= 1'b1;
@@ -170,12 +171,12 @@ module cnn_accelerator_multi_div #(
         end
     end
     
-    // Combinational: find first free divider and generate start pulse
+    // Find the first free divider and generate a one-cycle start pulse for it.
     always @(*) begin
         assign_mask_this_cycle = {NUM_DIVIDERS{1'b0}};
         start_this_cycle = 1'b0;
         
-        // Find first free divider
+        // Lowest-index free divider wins the allocation for this cycle.
         for (search_idx = 0; search_idx < NUM_DIVIDERS; search_idx = search_idx + 1) begin
             if (!div_busy[search_idx] && !start_this_cycle) begin
                 assign_mask_this_cycle[search_idx] = 1'b1;
@@ -184,12 +185,11 @@ module cnn_accelerator_multi_div #(
         end
     end
     
-    // FIFO read only if we have a free divider to assign work to
+    // Pop the FIFO only when work is being assigned to a divider lane.
     assign fifo_rd_en = fifo_rd_valid && start_this_cycle;
     assign div_start = fifo_rd_en ? assign_mask_this_cycle : {NUM_DIVIDERS{1'b0}};
     
-    // ============ Result output ============
-    // Collect results from any completed divider
+    // Capture the quotient from any divider that completes this cycle.
     always @(posedge clk) begin
         if (rst) begin
             result_reg <= {WIDTH{1'b0}};
