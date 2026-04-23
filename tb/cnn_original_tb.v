@@ -1,5 +1,6 @@
 /*
     Regression smoke test for the original accelerator configuration.
+    Ensures backward compatibility and legacy behavior preservation.
     Keeps INCLUDE_FINAL_DIVIDER enabled and checks legacy end-to-end behavior.
 */
 
